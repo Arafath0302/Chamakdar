@@ -1942,8 +1942,12 @@ footer {
     align-items: stretch;
     gap: 12px;
   }
+  .product-price {
+    text-align: center;
+  }
   .product-price-action .btn {
     width: 100%;
+    justify-content: center;
   }
   .featured-section {
     padding: 40px 0;

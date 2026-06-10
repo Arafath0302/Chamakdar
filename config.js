@@ -1,9 +1,3 @@
-/**
- * Chamakdar (চমকদার) - Landing Page Configuration File
- * 
- * You can customize the phone number, social links, product prices, delivery fees,
- * and Google Form integration here.
- */
 
 const CHAMAKDAR_CONFIG = {
   // Brand details

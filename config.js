@@ -9,8 +9,8 @@ const CHAMAKDAR_CONFIG = {
   // Brand details
   brandName: "চমকদার",
   tagline: "আপনার দৈনন্দিন জীবনকে সহজ ও সুন্দর করতে প্রিমিয়াম কোয়ালিটি প্রোডাক্টস!",
-  contactNumber: "017XXXXXXXX", // Replace with your mobile number
-  whatsappNumber: "+88017XXXXXXXX", // Replace with your WhatsApp number (include country code)
+  contactNumber: "01779220990", // Replace with your mobile number
+  whatsappNumber: "+8801779220990", // Replace with your WhatsApp number (include country code)
   facebookPageUrl: "https://www.facebook.com/chamakdar", // Replace with your Facebook page URL
   
   // Delivery Charges (টাকা)

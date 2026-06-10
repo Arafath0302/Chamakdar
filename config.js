@@ -5,7 +5,7 @@ const CHAMAKDAR_CONFIG = {
   tagline: "আপনার দৈনন্দিন জীবনকে সহজ ও সুন্দর করতে প্রিমিয়াম কোয়ালিটি প্রোডাক্টস!",
   contactNumber: "01779220990", // Replace with your mobile number
   whatsappNumber: "+8801779220990", // Replace with your WhatsApp number (include country code)
-  facebookPageUrl: "https://www.facebook.com/chamakdar", // Replace with your Facebook page URL
+  facebookPageUrl: "https://www.facebook.com/profile.php?id=61589633454945&rdid=51T8jn2kMq3htLEp&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1CgL9xY7Eg%2F#", // Replace with your Facebook page URL
   
   // Delivery Charges (টাকা)
   deliveryCharges: {

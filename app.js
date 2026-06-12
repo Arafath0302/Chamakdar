@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Setup Event Listeners
   setupEventListeners();
+
+  // Facebook Pixel — ViewContent tracking on product cards
+  fbSetupViewContentTracking();
 });
 
 /**
@@ -148,6 +151,15 @@ function setupEventListeners() {
   const checkoutForm = document.getElementById("checkout-form");
   if (checkoutForm) {
     checkoutForm.addEventListener("submit", handleOrderSubmit);
+
+    // Facebook Pixel — Track InitiateCheckout on first form interaction
+    let checkoutTracked = false;
+    checkoutForm.addEventListener("focusin", () => {
+      if (!checkoutTracked) {
+        checkoutTracked = true;
+        fbTrackInitiateCheckout();
+      }
+    });
   }
 
   // FAQ Accordion
@@ -185,6 +197,9 @@ function selectProductAndScroll(productId) {
     const event = new Event("change");
     radio.dispatchEvent(event);
   }
+
+  // Facebook Pixel — Track AddToCart
+  fbTrackAddToCart(productId);
 
   // Scroll to checkout form section smoothly
   const orderSection = document.getElementById("order-form-section");
@@ -349,6 +364,7 @@ function handleOrderSubmit(e) {
 
     iframe.onload = () => {
       // Iframe loaded = form submitted successfully
+      fbTrackPurchase(totalPrice, productName, qty, productKey);
       showSuccessModal(name, phone, productName, qty, totalPrice);
       resetCheckoutForm();
       submitBtn.disabled = false;
@@ -380,6 +396,7 @@ function handleOrderSubmit(e) {
     setTimeout(() => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnText;
+      fbTrackPurchase(totalPrice, productName, qty, productKey);
       showSuccessModal(name, phone, productName, qty, totalPrice);
       resetCheckoutForm();
     }, 800);
@@ -441,5 +458,82 @@ function showSuccessModal(name, phone, product, qty, total) {
 function closeSuccessModal() {
   const modal = document.getElementById("order-success-modal");
   modal.classList.remove("active");
+}
+
+/* =========================================================
+   FACEBOOK PIXEL EVENT TRACKING
+   ========================================================= */
+
+/**
+ * Uses Intersection Observer to fire ViewContent when product cards scroll into view
+ */
+function fbSetupViewContentTracking() {
+  if (typeof fbq !== "function") return;
+
+  const productCards = document.querySelectorAll(".product-card");
+  if (!productCards.length) return;
+
+  const observed = new Set();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !observed.has(entry.target)) {
+        observed.add(entry.target);
+        const productId = entry.target.id.replace("card-", "");
+        if (CHAMAKDAR_CONFIG && CHAMAKDAR_CONFIG.products[productId]) {
+          const product = CHAMAKDAR_CONFIG.products[productId];
+          fbq("track", "ViewContent", {
+            content_name: product.name,
+            content_ids: [productId],
+            content_type: "product",
+            value: product.price,
+            currency: "BDT"
+          });
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+
+  productCards.forEach(card => observer.observe(card));
+}
+
+/**
+ * Fires AddToCart when user clicks "অর্ডার করুন" on a product card
+ */
+function fbTrackAddToCart(productId) {
+  if (typeof fbq !== "function") return;
+  if (!CHAMAKDAR_CONFIG || !CHAMAKDAR_CONFIG.products[productId]) return;
+
+  const product = CHAMAKDAR_CONFIG.products[productId];
+  fbq("track", "AddToCart", {
+    content_name: product.name,
+    content_ids: [productId],
+    content_type: "product",
+    value: product.price,
+    currency: "BDT"
+  });
+}
+
+/**
+ * Fires InitiateCheckout when user first interacts with the order form
+ */
+function fbTrackInitiateCheckout() {
+  if (typeof fbq !== "function") return;
+  fbq("track", "InitiateCheckout");
+}
+
+/**
+ * Fires Purchase event after successful order submission
+ */
+function fbTrackPurchase(value, productName, qty, productKey) {
+  if (typeof fbq !== "function") return;
+  fbq("track", "Purchase", {
+    content_name: productName,
+    content_ids: [productKey],
+    content_type: "product",
+    value: value,
+    currency: "BDT",
+    num_items: qty
+  });
 }
 

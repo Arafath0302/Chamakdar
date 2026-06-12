@@ -3,9 +3,8 @@ const CHAMAKDAR_CONFIG = {
   // Brand details
   brandName: "চমকদার",
   tagline: "আপনার দৈনন্দিন জীবনকে সহজ ও সুন্দর করতে প্রিমিয়াম কোয়ালিটি প্রোডাক্টস!",
-  contactNumber: "01779220990", // Replace with your mobile number
-  whatsappNumber: "+8801779220990", // Replace with your WhatsApp number (include country code)
-  facebookPageUrl: "https://www.facebook.com/profile.php?id=61589633454945&rdid=51T8jn2kMq3htLEp&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1CgL9xY7Eg%2F#", // Replace with your Facebook page URL
+  whatsappNumber: "+8801947257370", // WhatsApp number with country code
+  facebookPageUrl: "https://www.facebook.com/profile.php?id=61589633454945", // Replace with your Facebook page URL
 
   // Facebook Pixel ID — Replace with your actual Pixel ID from Events Manager
   facebookPixelId: "YOUR_PIXEL_ID_HERE",

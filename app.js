@@ -27,17 +27,16 @@ function initializeFromConfig() {
 
   const config = CHAMAKDAR_CONFIG;
 
-  // Update Brand Name & Tagline if dynamic elements exist
-  // Update Phone numbers in text
-  const phoneTextElements = document.querySelectorAll(".phone-number-text");
-  phoneTextElements.forEach(el => {
-    el.textContent = config.contactNumber;
-  });
-
   // Update WhatsApp Link
   const floatingWhatsapp = document.getElementById("floating-whatsapp");
   if (floatingWhatsapp) {
     floatingWhatsapp.setAttribute("href", `https://wa.me/${config.whatsappNumber.replace('+', '')}`);
+  }
+
+  // Update Footer WhatsApp Link
+  const footerWhatsapp = document.getElementById("footer-wa-link");
+  if (footerWhatsapp) {
+    footerWhatsapp.setAttribute("href", `https://wa.me/${config.whatsappNumber.replace('+', '')}`);
   }
 
   // Update Facebook Link

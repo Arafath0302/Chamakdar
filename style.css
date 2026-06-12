@@ -1363,9 +1363,26 @@ footer {
   transition: var(--transition-fast);
 }
 
+.footer-social-icon[href*="facebook"] {
+  color: #1877F2;
+}
+
+.footer-whatsapp-icon {
+  color: #25D366;
+}
+
 .footer-social-icon:hover {
-  background-color: var(--primary);
   transform: translateY(-2px);
+}
+
+.footer-social-icon[href*="facebook"]:hover {
+  background-color: #1877F2;
+  color: #fff;
+}
+
+.footer-whatsapp-icon:hover {
+  background-color: #25D366;
+  color: #fff;
 }
 
 .footer-links h4,

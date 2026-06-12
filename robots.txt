@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /config.js
+Disallow: /app.js
+
+Sitemap: https://chamakdar.com/sitemap.xml

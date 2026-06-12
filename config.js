@@ -12,8 +12,8 @@ const CHAMAKDAR_CONFIG = {
   
   // Delivery Charges (টাকা)
   deliveryCharges: {
-    insideDhaka: 60,   // ঢাকা সিটির ভিতরে ডেলিভারি চার্জ
-    outsideDhaka: 120  // ঢাকা সিটির বাইরে ডেলিভারি চার্জ
+    insideDhaka: 80,   // ঢাকা সিটির ভিতরে ডেলিভারি চার্জ
+    outsideDhaka: 140  // ঢাকা সিটির বাইরে ডেলিভারি চার্জ
   },
 
   // Products Details

@@ -31,13 +31,6 @@ function initializeFromConfig() {
     el.textContent = config.contactNumber;
   });
 
-  // Update Phone links href
-  const phoneLink = document.getElementById("header-phone");
-  if (phoneLink) phoneLink.setAttribute("href", `tel:${config.contactNumber}`);
-
-  const floatingPhone = document.getElementById("floating-phone");
-  if (floatingPhone) floatingPhone.setAttribute("href", `tel:${config.contactNumber}`);
-
   // Update WhatsApp Link
   const floatingWhatsapp = document.getElementById("floating-whatsapp");
   if (floatingWhatsapp) {

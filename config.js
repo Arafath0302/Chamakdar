@@ -7,7 +7,7 @@ const CHAMAKDAR_CONFIG = {
   facebookPageUrl: "https://www.facebook.com/profile.php?id=61589633454945", // Replace with your Facebook page URL
 
   // Facebook Pixel ID — Replace with your actual Pixel ID from Events Manager
-  facebookPixelId: "YOUR_PIXEL_ID_HERE",
+  facebookPixelId: "1018082120683568",
   
   // Delivery Charges (টাকা)
   deliveryCharges: {

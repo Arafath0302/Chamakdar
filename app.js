@@ -3,18 +3,19 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize Page from Config
+  initializeFacebookPixel();
   initializeFromConfig();
-
-  // Initialize Price calculations
   updateOrderPrices();
-
-  // Setup Event Listeners
   setupEventListeners();
-
-  // Facebook Pixel — ViewContent tracking on product cards
   fbSetupViewContentTracking();
 });
+
+function initializeFacebookPixel() {
+  if (typeof fbq !== "function") return;
+  if (typeof CHAMAKDAR_CONFIG === "undefined") return;
+  fbq('init', CHAMAKDAR_CONFIG.facebookPixelId);
+  fbq('track', 'PageView');
+}
 
 /**
  * Initializes layout values (phone numbers, links, prices) using config.js

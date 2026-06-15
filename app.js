@@ -362,22 +362,26 @@ function handleOrderSubmit(e) {
 
     document.body.appendChild(hiddenForm);
 
-    iframe.onload = () => {
-      // Iframe loaded = form submitted successfully
-      fbTrackPurchase(totalPrice, productName, qty, productKey);
-      showSuccessModal(name, phone, productName, qty, totalPrice);
-      resetCheckoutForm();
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
-      updateOrderPrices();
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(hiddenForm);
-        document.body.removeChild(iframe);
-      }, 1000);
-    };
-
+    // Submit the form
     hiddenForm.submit();
+
+    // Trigger Purchase tracking and UI updates immediately
+    fbTrackPurchase(totalPrice, productName, qty, productKey);
+    showSuccessModal(name, phone, productName, qty, totalPrice);
+    resetCheckoutForm();
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnText;
+    updateOrderPrices();
+
+    // Cleanup elements after a short delay
+    setTimeout(() => {
+      if (document.body.contains(hiddenForm)) {
+        document.body.removeChild(hiddenForm);
+      }
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 1000);
   } else {
     // Demonstration/Testing Fallback when Google Form is not set up yet
     console.log("Mock Submission (Configure googleForm in config.js):", {

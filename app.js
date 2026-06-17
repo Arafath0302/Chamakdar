@@ -136,11 +136,6 @@ function setupEventListeners() {
       const target = document.getElementById("order-form-anchor");
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Focus first input after scroll
-        setTimeout(() => {
-          const first = target.querySelector("input:not([type='radio']):not([type='number'])");
-          if (first) first.focus();
-        }, 600);
       }
       fbTrackInitiateCheckout();
     });

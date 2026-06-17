@@ -559,6 +559,18 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   line-height: 1.6;
 }
 
+/* Quantity row — label + stepper in one line */
+.ff-qty {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ff-qty .fl {
+  white-space: nowrap;
+}
+
 /* Quantity Stepper */
 .qty-wrap {
   display: flex;
@@ -1318,14 +1330,15 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
 
   #checkout-form { padding: 12px 14px 16px; gap: 10px; }
   .ff { gap: 3px; }
+  .ff-qty { gap: 8px; }
   .fl { font-size: 0.82rem; }
   .fi { padding: 10px 12px; font-size: 16px; }
   .fi-ta { rows: 2; }
   .fhint { font-size: 0.68rem; }
 
-  .qty-wrap { height: 40px; }
-  .qty-btn { width: 40px; height: 40px; font-size: 1.2rem; }
-  .qty-input { width: 44px; height: 40px; font-size: 0.9rem; }
+  .qty-wrap { height: 38px; }
+  .qty-btn { width: 38px; height: 38px; font-size: 1.15rem; }
+  .qty-input { width: 42px; height: 38px; font-size: 0.9rem; }
 
   .order-summary { padding: 10px 12px; gap: 5px; }
   .os-row { font-size: 0.8rem; }
@@ -1407,4 +1420,10 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   .logo { font-size: 1.25rem; }
   .combo-box-title { font-size: 0.88rem; }
   .trust-chips { grid-template-columns: 1fr; }
+
+  #checkout-form { padding: 10px 12px 14px; gap: 8px; }
+  .ff-qty .fl { font-size: 0.78rem; }
+  .qty-wrap { height: 36px; }
+  .qty-btn { width: 36px; height: 36px; font-size: 1.05rem; }
+  .qty-input { width: 38px; height: 36px; font-size: 0.85rem; }
 }

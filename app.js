@@ -1,15 +1,19 @@
 /**
- * Chamakdar (চমকদার) - Landing Page Interactive Script
+ * Chamakdar (চমকদার) — Landing Page Script
+ * Single product: Combo Pack
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeFacebookPixel();
   initializeFromConfig();
-  updateOrderPrices();
+  updateOrderSummary();
   setupEventListeners();
   fbSetupViewContentTracking();
 });
 
+/* ─────────────────────────────────────
+   FACEBOOK PIXEL
+───────────────────────────────────── */
 function initializeFacebookPixel() {
   if (typeof fbq !== "function") return;
   if (typeof CHAMAKDAR_CONFIG === "undefined") return;
@@ -17,518 +21,371 @@ function initializeFacebookPixel() {
   fbq('track', 'PageView');
 }
 
-/**
- * Initializes layout values (phone numbers, links, prices) using config.js
- */
+/* ─────────────────────────────────────
+   INIT FROM CONFIG
+───────────────────────────────────── */
 function initializeFromConfig() {
   if (typeof CHAMAKDAR_CONFIG === "undefined") {
-    console.error("Configuration file 'config.js' not found or loaded.");
+    console.error("config.js not loaded.");
     return;
   }
+  const cfg = CHAMAKDAR_CONFIG;
 
-  const config = CHAMAKDAR_CONFIG;
+  const wa = document.getElementById("footer-wa-link");
+  if (wa) wa.setAttribute("href", `https://wa.me/${cfg.whatsappNumber.replace('+','')}`);
 
-  // Update WhatsApp Link
-  const floatingWhatsapp = document.getElementById("floating-whatsapp");
-  if (floatingWhatsapp) {
-    floatingWhatsapp.setAttribute("href", `https://wa.me/${config.whatsappNumber.replace('+', '')}`);
-  }
-
-  // Update Footer WhatsApp Link
-  const footerWhatsapp = document.getElementById("footer-wa-link");
-  if (footerWhatsapp) {
-    footerWhatsapp.setAttribute("href", `https://wa.me/${config.whatsappNumber.replace('+', '')}`);
-  }
-
-  // Update Facebook Link
-  const fbLink = document.getElementById("footer-fb-link");
-  if (fbLink) {
-    fbLink.setAttribute("href", config.facebookPageUrl);
-  }
-
-  // Update prices shown on cards dynamically from config
-  const comboPriceText = document.querySelectorAll("#card-combo .price-new");
-  comboPriceText.forEach(el => {
-    el.textContent = `৳${config.products.combo.price}`;
-  });
-
-  const sewingPriceText = document.querySelectorAll("#card-sewing .price-new");
-  sewingPriceText.forEach(el => {
-    el.textContent = `৳${config.products.sewing.price}`;
-  });
-
-  const grinderPriceText = document.querySelectorAll("#card-grinder .price-new");
-  grinderPriceText.forEach(el => {
-    el.textContent = `৳${config.products.grinder.price}`;
-  });
-
-  const formComboPriceLabel = document.querySelector("#label-combo .product-option-price");
-  if (formComboPriceLabel) {
-    formComboPriceLabel.textContent = `৳${config.products.combo.price}`;
-  }
-
-  const formSewingPriceLabel = document.querySelector("#label-sewing .product-option-price");
-  if (formSewingPriceLabel) {
-    formSewingPriceLabel.textContent = `৳${config.products.sewing.price}`;
-  }
-
-  const formGrinderPriceLabel = document.querySelector("#label-grinder .product-option-price");
-  if (formGrinderPriceLabel) {
-    formGrinderPriceLabel.textContent = `৳${config.products.grinder.price}`;
-  }
+  const fb = document.getElementById("footer-fb-link");
+  if (fb) fb.setAttribute("href", cfg.facebookPageUrl);
 }
 
-/**
- * Sets up listeners for user actions
- */
+/* ─────────────────────────────────────
+   EVENT LISTENERS
+───────────────────────────────────── */
 function setupEventListeners() {
-  // Sticky header transition on scroll
+
+  // Sticky header
   const header = document.getElementById("main-header");
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
-    }
-  });
+    header.classList.toggle("scrolled", window.scrollY > 40);
+  }, { passive: true });
 
-  // Product selector inputs
-  const productRadios = document.querySelectorAll('input[name="selected_product"]');
-  productRadios.forEach(radio => {
-    radio.addEventListener("change", (e) => {
-      // Toggle CSS selection classes on wrappers
-      document.querySelectorAll(".product-option-label").forEach(label => {
-        label.classList.remove("selected");
-      });
-      const selectedLabel = document.getElementById(`label-${e.target.value}`);
-      if (selectedLabel) {
-        selectedLabel.classList.add("selected");
-      }
-      updateOrderPrices();
-    });
-  });
-
-  // Quantity Stepper buttons logic
+  // ── Quantity Stepper ──
   const qtyInput = document.getElementById("order-quantity");
-  const minusBtn = document.getElementById("btn-qty-minus");
-  const plusBtn = document.getElementById("btn-qty-plus");
+  const minus    = document.getElementById("btn-qty-minus");
+  const plus     = document.getElementById("btn-qty-plus");
 
-  if (minusBtn && plusBtn && qtyInput) {
-    minusBtn.addEventListener("click", () => {
-      let val = parseInt(qtyInput.value) || 1;
-      if (val > 1) {
-        qtyInput.value = val - 1;
-        updateOrderPrices();
-      }
+  if (minus && plus && qtyInput) {
+    minus.addEventListener("click", () => {
+      const v = parseInt(qtyInput.value) || 1;
+      if (v > 1) { qtyInput.value = v - 1; updateOrderSummary(); }
     });
-
-    plusBtn.addEventListener("click", () => {
-      let val = parseInt(qtyInput.value) || 1;
-      if (val < 10) {
-        qtyInput.value = val + 1;
-        updateOrderPrices();
-      }
+    plus.addEventListener("click", () => {
+      const v = parseInt(qtyInput.value) || 1;
+      if (v < 10) { qtyInput.value = v + 1; updateOrderSummary(); }
     });
   }
 
-  // Delivery Location Pills logic
-  const deliveryRadios = document.querySelectorAll('input[name="delivery_location"]');
-  deliveryRadios.forEach(radio => {
+  // ── Delivery Pills ──
+  document.querySelectorAll('input[name="delivery_location"]').forEach(radio => {
     radio.addEventListener("change", (e) => {
-      // Toggle CSS selection classes on delivery pills labels
-      document.querySelectorAll(".delivery-pill-label").forEach(label => {
-        label.classList.remove("selected");
-      });
-      const selectedLabel = document.getElementById(`label-del-${e.target.value}`);
-      if (selectedLabel) {
-        selectedLabel.classList.add("selected");
-      }
-      updateOrderPrices();
+      document.querySelectorAll(".dpill").forEach(l => l.classList.remove("selected"));
+      const lbl = document.getElementById(`label-del-${e.target.value}`);
+      if (lbl) lbl.classList.add("selected");
+      updateOrderSummary();
     });
   });
 
-  // Form submission
-  const checkoutForm = document.getElementById("checkout-form");
-  if (checkoutForm) {
-    checkoutForm.addEventListener("submit", handleOrderSubmit);
+  // ── Form Submit ──
+  const form = document.getElementById("checkout-form");
+  if (form) {
+    form.addEventListener("submit", handleOrderSubmit);
 
-    // Facebook Pixel — Track InitiateCheckout on first form interaction
-    let checkoutTracked = false;
-    checkoutForm.addEventListener("focusin", () => {
-      if (!checkoutTracked) {
-        checkoutTracked = true;
-        fbTrackInitiateCheckout();
-      }
-    });
+    // FB: InitiateCheckout on first focus
+    let tracked = false;
+    form.addEventListener("focusin", () => {
+      if (!tracked) { tracked = true; fbTrackInitiateCheckout(); }
+    }, { once: false });
   }
 
-  // FAQ Accordion
-  const faqItems = document.querySelectorAll(".faq-item");
-  faqItems.forEach(item => {
-    const question = item.querySelector(".faq-question");
-    question.addEventListener("click", () => {
-      const isActive = item.classList.contains("active");
-
-      // Close other active FAQs
-      faqItems.forEach(otherItem => {
-        otherItem.classList.remove("active");
-        otherItem.querySelector(".faq-answer").style.maxHeight = null;
+  // ── FAQ Accordion ──
+  document.querySelectorAll(".faq-item").forEach(item => {
+    const q = item.querySelector(".faq-q");
+    if (!q) return;
+    q.addEventListener("click", () => {
+      const isOpen = item.classList.contains("active");
+      // Close all
+      document.querySelectorAll(".faq-item").forEach(i => {
+        i.classList.remove("active");
+        const a = i.querySelector(".faq-a");
+        if (a) a.style.maxHeight = null;
       });
-
-      if (!isActive) {
+      // Open this one
+      if (!isOpen) {
         item.classList.add("active");
-        const answer = item.querySelector(".faq-answer");
-        answer.style.maxHeight = answer.scrollHeight + "px";
+        const a = item.querySelector(".faq-a");
+        if (a) a.style.maxHeight = a.scrollHeight + "px";
       }
     });
   });
-}
 
-/**
- * Selects product in the checkout form and scrolls to it
- * Used by the buttons on the product catalog cards
- */
-function selectProductAndScroll(productId) {
-  const radio = document.getElementById(`prod-${productId}`);
-  if (radio) {
-    radio.checked = true;
+  // ── Sticky Order Bar — hide when form is visible ──
+  const stickyBar       = document.getElementById("sticky-bar");
+  const formCol         = document.getElementById("order-form-anchor");
 
-    // Fire the change event manually to update labels and pricing calculation
-    const event = new Event("change");
-    radio.dispatchEvent(event);
+  if (stickyBar && formCol) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            stickyBar.classList.add("hidden");
+          } else {
+            stickyBar.classList.remove("hidden");
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(formCol);
   }
 
-  // Facebook Pixel — Track AddToCart
-  fbTrackAddToCart(productId);
-
-  // Scroll to checkout form section smoothly
-  const orderSection = document.getElementById("order-form-section");
-  if (orderSection) {
-    orderSection.scrollIntoView({ behavior: "smooth" });
+  // ── "Order Now" button smooth scroll (already handled by href, just track click) ──
+  const orderNowTop = document.getElementById("btn-order-now-top");
+  if (orderNowTop) {
+    orderNowTop.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = document.getElementById("order-form-anchor");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Focus first input after scroll
+        setTimeout(() => {
+          const first = target.querySelector("input:not([type='radio']):not([type='number'])");
+          if (first) first.focus();
+        }, 600);
+      }
+      fbTrackInitiateCheckout();
+    });
   }
 }
 
-/**
- * Recalculates product subtotals, delivery charges, and total sum payable
- */
-function updateOrderPrices() {
+/* ─────────────────────────────────────
+   UPDATE ORDER SUMMARY
+───────────────────────────────────── */
+function updateOrderSummary() {
   if (typeof CHAMAKDAR_CONFIG === "undefined") return;
 
-  const config = CHAMAKDAR_CONFIG;
+  const cfg          = CHAMAKDAR_CONFIG;
+  const productPrice = cfg.products.combo.price;
+  const qty          = parseInt(document.getElementById("order-quantity")?.value || 1) || 1;
+  const delCharge = cfg.deliveryCharges.flat;
 
-  // Get selected product price
-  const selectedProductRadio = document.querySelector('input[name="selected_product"]:checked');
-  if (!selectedProductRadio) return;
-  const selectedProductKey = selectedProductRadio.value;
-  const productPrice = config.products[selectedProductKey].price;
+  const subtotal = productPrice * qty;
+  const total    = subtotal + delCharge;
 
-  // Get quantity
-  const qtyInput = document.getElementById("order-quantity");
-  const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+  const $ = id => document.getElementById(id);
 
-  // Get delivery charges from checked radio pill
-  const deliveryRadio = document.querySelector('input[name="delivery_location"]:checked');
-  const deliveryLoc = deliveryRadio ? deliveryRadio.value : "outside";
-  const deliveryCharge = deliveryLoc === "inside"
-    ? config.deliveryCharges.insideDhaka
-    : config.deliveryCharges.outsideDhaka;
+  if ($("summary-product-price"))  $("summary-product-price").textContent  = `৳${fmt(subtotal)}`;
+  if ($("summary-delivery-charge")) $("summary-delivery-charge").textContent = `৳${fmt(delCharge)}`;
+  if ($("summary-total-price"))     $("summary-total-price").textContent     = `৳${fmt(total)}`;
 
-  // Compute values
-  const productSubtotal = productPrice * qty;
-  const totalPrice = productSubtotal + deliveryCharge;
-
-  // Render to DOM
-  const summaryProd = document.getElementById("summary-product-price");
-  const summaryDel = document.getElementById("summary-delivery-charge");
-  const summaryTotal = document.getElementById("summary-total-price");
-  const submitBtnText = document.getElementById("submit-btn-text");
-
-  if (summaryProd) summaryProd.textContent = `৳${formatPrice(productSubtotal)}`;
-  if (summaryDel) summaryDel.textContent = `৳${formatPrice(deliveryCharge)}`;
-  if (summaryTotal) summaryTotal.textContent = `৳${formatPrice(totalPrice)}`;
-
-  // High-converting button text update
-  if (submitBtnText) {
-    submitBtnText.textContent = `৳${formatPrice(totalPrice)} - অর্ডার নিশ্চিত করুন (ক্যাশ অন ডেলিভারি)`;
+  const btnText = $("submit-btn-text");
+  if (btnText) {
+    btnText.textContent = `৳${fmt(total)} — অর্ডার কনফার্ম করুন (ক্যাশ অন ডেলিভারি)`;
   }
 
-  // Update stepper button disabled states
-  const currentQty = parseInt(document.getElementById("order-quantity")?.value) || 1;
-  const minusBtn = document.getElementById("btn-qty-minus");
-  const plusBtn = document.getElementById("btn-qty-plus");
-  if (minusBtn) minusBtn.disabled = currentQty <= 1;
-  if (plusBtn) plusBtn.disabled = currentQty >= 10;
+  const m = $("btn-qty-minus");
+  const p = $("btn-qty-plus");
+  if (m) m.disabled = qty <= 1;
+  if (p) p.disabled = qty >= 10;
 }
 
-/**
- * Form validation and order submission flow
- */
+/* ─────────────────────────────────────
+   FORM SUBMIT HANDLER
+───────────────────────────────────── */
 function handleOrderSubmit(e) {
   e.preventDefault();
 
-  const nameInput = document.getElementById("cust-name");
-  const phoneInput = document.getElementById("cust-phone");
-  const addressInput = document.getElementById("cust-address");
-  const qtyInput = document.getElementById("order-quantity");
+  const nameEl    = document.getElementById("cust-name");
+  const phoneEl   = document.getElementById("cust-phone");
+  const addrEl    = document.getElementById("cust-address");
+  const qtyEl     = document.getElementById("order-quantity");
+  const name    = nameEl.value.trim();
+  const phone   = phoneEl.value.trim();
+  const address = addrEl.value.trim();
+  const qty     = parseInt(qtyEl?.value || 1) || 1;
+  const delivery = "সারা বাংলাদেশ";
 
-  const productRadio = document.querySelector('input[name="selected_product"]:checked');
-  const deliveryRadio = document.querySelector('input[name="delivery_location"]:checked');
-
-  // Basic Trim Check
-  const name = nameInput.value.trim();
-  const phone = phoneInput.value.trim();
-  const address = addressInput.value.trim();
-  const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
-
-  const deliveryLoc = deliveryRadio ? deliveryRadio.value : "outside";
-  const delivery = deliveryLoc === "inside" ? "ঢাকা সিটি (ভিতরে)" : "ঢাকার বাইরে (অন্যান্য জেলা)";
-
-  const productKey = productRadio ? productRadio.value : "sewing";
-  const productName = CHAMAKDAR_CONFIG.products[productKey].name;
-
-  const productPrice = CHAMAKDAR_CONFIG.products[productKey].price;
-  const deliveryCharge = deliveryLoc === "inside"
-    ? CHAMAKDAR_CONFIG.deliveryCharges.insideDhaka
-    : CHAMAKDAR_CONFIG.deliveryCharges.outsideDhaka;
-  const totalPrice = (productPrice * qty) + deliveryCharge;
+  const cfg          = CHAMAKDAR_CONFIG;
+  const productName  = cfg.products.combo.name;
+  const productPrice = cfg.products.combo.price;
+  const delCharge    = cfg.deliveryCharges.flat;
+  const totalPrice = (productPrice * qty) + delCharge;
 
   // Validation
   if (!name) {
-    alert("অনুগ্রহ করে আপনার নাম লিখুন!");
-    nameInput.focus();
-    return;
+    fieldError(nameEl, "অনুগ্রহ করে আপনার নাম লিখুন!");
+    nameEl.focus(); return;
   }
-
   if (!phone) {
-    alert("অনুগ্রহ করে আপনার মোবাইল নম্বর লিখুন!");
-    phoneInput.focus();
-    return;
+    fieldError(phoneEl, "অনুগ্রহ করে মোবাইল নম্বর লিখুন!");
+    phoneEl.focus(); return;
   }
-
-  // BD Phone Number Regex validation (11 digits, starts with 01)
-  const phoneRegex = /^01[3-9]\d{8}$/;
-  if (!phoneRegex.test(phone)) {
-    alert("দয়া করে একটি সঠিক ১১-ডিজিটের মোবাইল নম্বর দিন (যেমন: 01712345678)!");
-    phoneInput.focus();
-    return;
+  if (!/^01[3-9]\d{8}$/.test(phone)) {
+    fieldError(phoneEl, "সঠিক ১১ ডিজিটের নম্বর দিন (যেমন: 01712345678)");
+    phoneEl.focus(); return;
   }
-
   if (!address) {
-    alert("অনুগ্রহ করে ডেলিভারির সম্পূর্ণ ঠিকানা লিখুন!");
-    addressInput.focus();
-    return;
+    fieldError(addrEl, "ডেলিভারির সম্পূর্ণ ঠিকানা লিখুন!");
+    addrEl.focus(); return;
   }
 
-  // Prepare submission button state
-  const submitBtn = document.getElementById("btn-submit-order");
-  const originalBtnText = submitBtn.innerHTML;
-  submitBtn.disabled = true;
+  // Disable button
+  const submitBtn  = document.getElementById("btn-submit-order");
+  const origHTML   = submitBtn.innerHTML;
+  submitBtn.disabled  = true;
   submitBtn.textContent = "অর্ডার সাবমিট হচ্ছে...";
 
-  // Google Form submission logic
-  const config = CHAMAKDAR_CONFIG;
-  if (config.googleForm && config.googleForm.enabled) {
-
-
-    // Send POST asynchronously to Google Forms using 'no-cors' mode
-    // Submit via hidden iframe (only reliable method for Google Forms)
+  // Google Form submission
+  if (cfg.googleForm && cfg.googleForm.enabled) {
     const iframe = document.createElement("iframe");
-    iframe.name = "gform_iframe";
+    iframe.name = "gf_frame";
     iframe.style.display = "none";
     document.body.appendChild(iframe);
 
-    const hiddenForm = document.createElement("form");
-    hiddenForm.method = "POST";
-    hiddenForm.action = config.googleForm.actionUrl;
-    hiddenForm.target = "gform_iframe";
+    const hf = document.createElement("form");
+    hf.method = "POST";
+    hf.action = cfg.googleForm.actionUrl;
+    hf.target = "gf_frame";
 
     const fields = {
-      [config.googleForm.entryIds.name]: name,
-      [config.googleForm.entryIds.phone]: phone,
-      [config.googleForm.entryIds.address]: address,
-      [config.googleForm.entryIds.product]: productName,
-      [config.googleForm.entryIds.quantity]: String(qty),
-      [config.googleForm.entryIds.delivery]: delivery,
-      [config.googleForm.entryIds.totalPrice]: String(totalPrice)
+      [cfg.googleForm.entryIds.name]:       name,
+      [cfg.googleForm.entryIds.phone]:      phone,
+      [cfg.googleForm.entryIds.address]:    address,
+      [cfg.googleForm.entryIds.product]:    productName,
+      [cfg.googleForm.entryIds.quantity]:   String(qty),
+      [cfg.googleForm.entryIds.delivery]:   delivery,
+      [cfg.googleForm.entryIds.totalPrice]: String(totalPrice)
     };
 
-    Object.entries(fields).forEach(([entryId, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = entryId;
-      input.value = value;
-      hiddenForm.appendChild(input);
+    Object.entries(fields).forEach(([id, val]) => {
+      const inp = document.createElement("input");
+      inp.type = "hidden"; inp.name = id; inp.value = val;
+      hf.appendChild(inp);
     });
 
-    document.body.appendChild(hiddenForm);
+    document.body.appendChild(hf);
+    hf.submit();
 
-    // Submit the form
-    hiddenForm.submit();
-
-    // Trigger Purchase tracking and UI updates immediately
-    fbTrackPurchase(totalPrice, productName, qty, productKey);
+    fbTrackPurchase(totalPrice, productName, qty, "combo");
     showSuccessModal(name, phone, productName, qty, totalPrice);
-    resetCheckoutForm();
+    resetForm();
     submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-    updateOrderPrices();
+    submitBtn.innerHTML = origHTML;
+    updateOrderSummary();
 
-    // Cleanup elements after a short delay
     setTimeout(() => {
-      if (document.body.contains(hiddenForm)) {
-        document.body.removeChild(hiddenForm);
-      }
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 1000);
+      if (document.body.contains(hf))     document.body.removeChild(hf);
+      if (document.body.contains(iframe)) document.body.removeChild(iframe);
+    }, 1200);
+
   } else {
-    // Demonstration/Testing Fallback when Google Form is not set up yet
-    console.log("Mock Submission (Configure googleForm in config.js):", {
-      name, phone, address, productName, qty, delivery, totalPrice
-    });
+    // Dev fallback
+    console.log("Mock order:", { name, phone, address, productName, qty, delivery, totalPrice });
+    const orders = JSON.parse(localStorage.getItem("chamakdar_orders") || "[]");
+    orders.push({ date: new Date().toISOString(), name, phone, address, productName, qty, delivery, totalPrice });
+    localStorage.setItem("chamakdar_orders", JSON.stringify(orders));
 
-    // Save to local storage for testing purposes
-    const mockOrders = JSON.parse(localStorage.getItem("chamakdar_orders") || "[]");
-    mockOrders.push({
-      date: new Date().toISOString(),
-      name, phone, address, productName, qty, delivery, totalPrice
-    });
-    localStorage.setItem("chamakdar_orders", JSON.stringify(mockOrders));
-
-    // Wait a brief moment to simulate processing, then pop modal
     setTimeout(() => {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
-      fbTrackPurchase(totalPrice, productName, qty, productKey);
+      submitBtn.innerHTML = origHTML;
+      fbTrackPurchase(totalPrice, productName, qty, "combo");
       showSuccessModal(name, phone, productName, qty, totalPrice);
-      resetCheckoutForm();
+      resetForm();
     }, 800);
   }
 }
 
-/**
- * Formats a number with comma separators for Bengali display
- * e.g. 1119 -> "1,119"
- */
-function formatPrice(amount) {
+/* ─────────────────────────────────────
+   INLINE FIELD ERROR
+───────────────────────────────────── */
+function fieldError(el, msg) {
+  // Clear previous
+  el.parentNode.querySelectorAll(".field-err").forEach(e => e.remove());
+  el.style.borderColor = "var(--error)";
+  el.style.boxShadow   = "0 0 0 3px rgba(220,38,38,0.12)";
+
+  const div = document.createElement("div");
+  div.className = "field-err";
+  div.style.cssText = "color:#dc2626;font-size:0.78rem;font-weight:600;margin-top:4px;";
+  div.textContent = msg;
+  el.parentNode.appendChild(div);
+
+  el.addEventListener("input", () => {
+    el.style.borderColor = "";
+    el.style.boxShadow   = "";
+    div.remove();
+  }, { once: true });
+}
+
+/* ─────────────────────────────────────
+   RESET FORM
+───────────────────────────────────── */
+function resetForm() {
+  const $ = id => document.getElementById(id);
+  $("cust-name").value    = "";
+  $("cust-phone").value   = "";
+  $("cust-address").value = "";
+  const qty = $("order-quantity");
+  if (qty) qty.value = "1";
+
+  const delFlat = $("del-flat");
+  if (delFlat) {
+    delFlat.checked = true;
+    document.querySelectorAll(".dpill").forEach(l => l.classList.remove("selected"));
+    const lbl = $("label-del-flat");
+    if (lbl) lbl.classList.add("selected");
+  }
+  updateOrderSummary();
+}
+
+/* ─────────────────────────────────────
+   SUCCESS MODAL
+───────────────────────────────────── */
+function showSuccessModal(name, phone, product, qty, total) {
+  const $ = id => document.getElementById(id);
+  $("modal-cust-name").textContent  = name;
+  $("modal-cust-phone").textContent = phone;
+  $("modal-prod-name").textContent  = product;
+  $("modal-prod-qty").textContent   = `${qty} টি`;
+  $("modal-total-bill").textContent = `৳${fmt(total)}`;
+  $("order-success-modal").classList.add("active");
+
+  // Prevent body scroll while modal open
+  document.body.style.overflow = "hidden";
+}
+
+function closeSuccessModal() {
+  document.getElementById("order-success-modal").classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+/* ─────────────────────────────────────
+   FORMAT PRICE
+───────────────────────────────────── */
+function fmt(amount) {
   return Number(amount).toLocaleString('en-IN');
 }
 
-/**
- * Resets checkout form fields
- */
-function resetCheckoutForm() {
-  document.getElementById("cust-name").value = "";
-  document.getElementById("cust-phone").value = "";
-  document.getElementById("cust-address").value = "";
-
-  const qtyInput = document.getElementById("order-quantity");
-  if (qtyInput) qtyInput.value = "1";
-
-  // Reset delivery location check to default (outside)
-  const delOutsideRadio = document.getElementById("del-outside");
-  if (delOutsideRadio) {
-    delOutsideRadio.checked = true;
-    document.querySelectorAll(".delivery-pill-label").forEach(label => {
-      label.classList.remove("selected");
-    });
-    const labelOutside = document.getElementById("label-del-outside");
-    if (labelOutside) labelOutside.classList.add("selected");
-  }
-
-  updateOrderPrices();
-}
-
-/**
- * Renders and shows the confirmation modal
- * Uses CSS visibility+opacity transition (no display toggle needed)
- */
-function showSuccessModal(name, phone, product, qty, total) {
-  document.getElementById("modal-cust-name").textContent = name;
-  document.getElementById("modal-cust-phone").textContent = phone;
-  document.getElementById("modal-prod-name").textContent = product;
-  document.getElementById("modal-prod-qty").textContent = `${qty} টি`;
-  document.getElementById("modal-total-bill").textContent = `৳${formatPrice(total)}`;
-
-  const modal = document.getElementById("order-success-modal");
-  // Modal uses visibility+opacity CSS approach — just add active class
-  modal.classList.add("active");
-}
-
-/**
- * Closes the success modal
- */
-function closeSuccessModal() {
-  const modal = document.getElementById("order-success-modal");
-  modal.classList.remove("active");
-}
-
-/* =========================================================
-   FACEBOOK PIXEL EVENT TRACKING
-   ========================================================= */
-
-/**
- * Uses Intersection Observer to fire ViewContent when product cards scroll into view
- */
+/* ─────────────────────────────────────
+   FACEBOOK PIXEL EVENTS
+───────────────────────────────────── */
 function fbSetupViewContentTracking() {
   if (typeof fbq !== "function") return;
+  const imgWrap = document.querySelector(".product-img-wrap");
+  if (!imgWrap || !CHAMAKDAR_CONFIG) return;
 
-  const productCards = document.querySelectorAll(".product-card");
-  if (!productCards.length) return;
-
-  const observed = new Set();
-
-  const observer = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting && !observed.has(entry.target)) {
-        observed.add(entry.target);
-        const productId = entry.target.id.replace("card-", "");
-        if (CHAMAKDAR_CONFIG && CHAMAKDAR_CONFIG.products[productId]) {
-          const product = CHAMAKDAR_CONFIG.products[productId];
-          fbq("track", "ViewContent", {
-            content_name: product.name,
-            content_ids: [productId],
-            content_type: "product",
-            value: product.price,
-            currency: "BDT"
-          });
-        }
+      if (entry.isIntersecting) {
+        const p = CHAMAKDAR_CONFIG.products.combo;
+        fbq("track", "ViewContent", {
+          content_name: p.name,
+          content_ids: ["combo"],
+          content_type: "product",
+          value: p.price,
+          currency: "BDT"
+        });
+        observer.disconnect();
       }
     });
-  }, { threshold: 0.3 });
-
-  productCards.forEach(card => observer.observe(card));
+  }, { threshold: 0.4 });
+  observer.observe(imgWrap);
 }
 
-/**
- * Fires AddToCart when user clicks "অর্ডার করুন" on a product card
- */
-function fbTrackAddToCart(productId) {
-  if (typeof fbq !== "function") return;
-  if (!CHAMAKDAR_CONFIG || !CHAMAKDAR_CONFIG.products[productId]) return;
-
-  const product = CHAMAKDAR_CONFIG.products[productId];
-  fbq("track", "AddToCart", {
-    content_name: product.name,
-    content_ids: [productId],
-    content_type: "product",
-    value: product.price,
-    currency: "BDT"
-  });
-}
-
-/**
- * Fires InitiateCheckout when user first interacts with the order form
- */
 function fbTrackInitiateCheckout() {
   if (typeof fbq !== "function") return;
   fbq("track", "InitiateCheckout");
 }
 
-/**
- * Fires Purchase event after successful order submission
- */
 function fbTrackPurchase(value, productName, qty, productKey) {
   if (typeof fbq !== "function") return;
   fbq("track", "Purchase", {
@@ -540,4 +397,3 @@ function fbTrackPurchase(value, productName, qty, productKey) {
     num_items: qty
   });
 }
-

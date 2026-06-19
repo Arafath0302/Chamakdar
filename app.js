@@ -128,18 +128,25 @@ function setupEventListeners() {
     observer.observe(formCol);
   }
 
-  // ── "Order Now" button smooth scroll (already handled by href, just track click) ──
-  const orderNowTop = document.getElementById("btn-order-now-top");
-  if (orderNowTop) {
-    orderNowTop.addEventListener("click", (e) => {
-      e.preventDefault();
-      const target = document.getElementById("order-form-anchor");
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+  // ── Smooth scroll to order form — prevents mobile keyboard popup ──
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest('a[href="#order-form-anchor"]');
+    if (!link) return;
+    e.preventDefault();
+    const target = document.getElementById("order-form-anchor");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Dismiss mobile keyboard if it accidentally opens
+      setTimeout(() => {
+        if (document.activeElement && document.activeElement !== document.body) {
+          document.activeElement.blur();
+        }
+      }, 100);
+    }
+    if (link.id === "btn-order-now-top") {
       fbTrackInitiateCheckout();
-    });
-  }
+    }
+  });
 }
 
 /* ─────────────────────────────────────

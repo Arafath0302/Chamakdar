@@ -3,4 +3,4 @@ Allow: /
 Disallow: /config.js
 Disallow: /app.js
 
-Sitemap: https://chamakdar.com/sitemap.xml
+Sitemap: https://chomokdar.com/sitemap.xml

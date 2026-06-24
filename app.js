@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Only fire the pixel on the real production domain.
 // Blocks dev environments (localhost, 127.0.0.1) and Vercel previews.
-const PRODUCTION_DOMAINS = ["chamakdar.com", "www.chamakdar.com"];
+const PRODUCTION_DOMAINS = ["chomokdar.com", "www.chomokdar.com"];
 
 function isProductionDomain() {
   const host = window.location.hostname.toLowerCase();

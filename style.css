@@ -370,14 +370,40 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   gap: 10px;
 }
 
+/* Combo Item — Accordion */
 .combo-item {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
   background: var(--muted);
   border-radius: var(--r-sm);
-  padding: 10px 12px;
+  border: 1.5px solid transparent;
+  overflow: hidden;
+  transition: border-color var(--ease), box-shadow var(--ease);
 }
+
+.combo-item.open {
+  border-color: rgba(232,93,38,0.2);
+  box-shadow: 0 2px 12px rgba(232,93,38,0.08);
+  background: var(--card);
+}
+
+/* Clickable header row */
+.ci-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 11px 13px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-bn);
+  transition: background var(--ease);
+  touch-action: manipulation;
+}
+
+.ci-header:hover { background: rgba(232,93,38,0.05); }
 
 .ci-icon { font-size: 1.3rem; flex-shrink: 0; }
 
@@ -385,18 +411,81 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .ci-info strong {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text);
+  display: block;
 }
 
 .ci-info span {
   font-size: 0.78rem;
   color: var(--text-lt);
   line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chevron rotates when open */
+.ci-chevron {
+  flex-shrink: 0;
+  color: var(--text-lt);
+  transition: transform 0.28s ease, color 0.2s;
+}
+
+.combo-item.open .ci-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+/* Collapsible body */
+.ci-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+.combo-item.open .ci-body {
+  max-height: 400px;
+}
+
+/* Spec table inside body */
+.ci-specs {
+  border-top: 1px solid var(--border);
+  margin: 0 13px 12px;
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  overflow: hidden;
+}
+
+.ci-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ci-spec-row:nth-child(odd)  { background: rgba(0,0,0,0.025); }
+.ci-spec-row:nth-child(even) { background: transparent; }
+
+.cs-label {
+  color: var(--text-lt);
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cs-val {
+  color: var(--text);
+  font-weight: 700;
+  text-align: right;
 }
 
 /* Trust Chips */

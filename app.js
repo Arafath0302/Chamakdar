@@ -8,15 +8,37 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeFromConfig();
   updateOrderSummary();
   setupEventListeners();
+  setupComboAccordion();
   fbSetupViewContentTracking();
 });
 
 /* ─────────────────────────────────────
    FACEBOOK PIXEL
 ───────────────────────────────────── */
+
+// Only fire the pixel on the real production domain.
+// Blocks dev environments (localhost, 127.0.0.1) and Vercel previews.
+const PRODUCTION_DOMAINS = ["chamakdar.com", "www.chamakdar.com"];
+
+function isProductionDomain() {
+  const host = window.location.hostname.toLowerCase();
+  return PRODUCTION_DOMAINS.includes(host);
+}
+
 function initializeFacebookPixel() {
   if (typeof fbq !== "function") return;
   if (typeof CHAMAKDAR_CONFIG === "undefined") return;
+
+  // BLOCK: Don't fire pixel on localhost, 127.0.0.1, Vercel previews, etc.
+  if (!isProductionDomain()) {
+    console.info("[FB Pixel] Blocked — not a production domain:", window.location.hostname);
+    return;
+  }
+
+  // Disable Facebook's Automatic Events (stops auto-detected AddToCart, etc.)
+  fbq.disablePushState = true;
+  fbq('set', 'autoConfig', false, CHAMAKDAR_CONFIG.facebookPixelId);
+
   fbq('init', CHAMAKDAR_CONFIG.facebookPixelId);
   fbq('track', 'PageView');
 }
@@ -80,11 +102,10 @@ function setupEventListeners() {
   if (form) {
     form.addEventListener("submit", handleOrderSubmit);
 
-    // FB: InitiateCheckout on first focus
-    let tracked = false;
+    // FB: InitiateCheckout on first focus — fires only once per page load
     form.addEventListener("focusin", () => {
-      if (!tracked) { tracked = true; fbTrackInitiateCheckout(); }
-    }, { once: false });
+      fbTrackInitiateCheckout();
+    }, { once: true });  // 'once: true' removes listener after first fire
   }
 
   // ── FAQ Accordion ──
@@ -150,6 +171,30 @@ function setupEventListeners() {
 }
 
 /* ─────────────────────────────────────
+   COMBO ITEM ACCORDION
+───────────────────────────────────── */
+function setupComboAccordion() {
+  document.querySelectorAll(".ci-header").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const item = btn.closest(".combo-item");
+      const isOpen = item.classList.contains("open");
+
+      // Close all other open items (accordion behaviour — only one open at a time)
+      document.querySelectorAll(".combo-item.open").forEach(other => {
+        if (other !== item) {
+          other.classList.remove("open");
+          other.querySelector(".ci-header").setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Toggle this item
+      item.classList.toggle("open", !isOpen);
+      btn.setAttribute("aria-expanded", String(!isOpen));
+    });
+  });
+}
+
+/* ─────────────────────────────────────
    UPDATE ORDER SUMMARY
 ───────────────────────────────────── */
 function updateOrderSummary() {
@@ -183,8 +228,15 @@ function updateOrderSummary() {
 /* ─────────────────────────────────────
    FORM SUBMIT HANDLER
 ───────────────────────────────────── */
+// Guard flag — prevents double-submit if user clicks rapidly
+let _orderSubmitting = false;
+
 function handleOrderSubmit(e) {
   e.preventDefault();
+
+  // Block duplicate submissions
+  if (_orderSubmitting) return;
+  _orderSubmitting = true;
 
   const nameEl    = document.getElementById("cust-name");
   const phoneEl   = document.getElementById("cust-phone");
@@ -202,20 +254,24 @@ function handleOrderSubmit(e) {
   const delCharge    = cfg.deliveryCharges.flat;
   const totalPrice = (productPrice * qty) + delCharge;
 
-  // Validation
+  // Validation — reset guard on failure so user can try again
   if (!name) {
+    _orderSubmitting = false;
     fieldError(nameEl, "অনুগ্রহ করে আপনার নাম লিখুন!");
     nameEl.focus(); return;
   }
   if (!phone) {
+    _orderSubmitting = false;
     fieldError(phoneEl, "অনুগ্রহ করে মোবাইল নম্বর লিখুন!");
     phoneEl.focus(); return;
   }
   if (!/^01[3-9]\d{8}$/.test(phone)) {
+    _orderSubmitting = false;
     fieldError(phoneEl, "সঠিক ১১ ডিজিটের নম্বর দিন (যেমন: 01712345678)");
     phoneEl.focus(); return;
   }
   if (!address) {
+    _orderSubmitting = false;
     fieldError(addrEl, "ডেলিভারির সম্পূর্ণ ঠিকানা লিখুন!");
     addrEl.focus(); return;
   }
@@ -255,19 +311,32 @@ function handleOrderSubmit(e) {
     });
 
     document.body.appendChild(hf);
+
+    // Fire Purchase AFTER Google Form responds (iframe onload = server received data)
+    let purchaseFired = false;
+    const fireSuccess = () => {
+      if (purchaseFired) return;
+      purchaseFired = true;
+      fbTrackPurchase(totalPrice, productName, qty, "combo");
+      showSuccessModal(name, phone, productName, qty, totalPrice);
+      resetForm();
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origHTML;
+      updateOrderSummary();
+      _orderSubmitting = false;
+      setTimeout(() => {
+        if (document.body.contains(hf))     document.body.removeChild(hf);
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      }, 1200);
+    };
+
+    // onload fires when Google Form iframe gets a response
+    iframe.addEventListener("load", fireSuccess, { once: true });
+
+    // Fallback: if onload never fires within 10s (network issue), show modal anyway
+    setTimeout(fireSuccess, 10000);
+
     hf.submit();
-
-    fbTrackPurchase(totalPrice, productName, qty, "combo");
-    showSuccessModal(name, phone, productName, qty, totalPrice);
-    resetForm();
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = origHTML;
-    updateOrderSummary();
-
-    setTimeout(() => {
-      if (document.body.contains(hf))     document.body.removeChild(hf);
-      if (document.body.contains(iframe)) document.body.removeChild(iframe);
-    }, 1200);
 
   } else {
     // Dev fallback
@@ -282,6 +351,7 @@ function handleOrderSubmit(e) {
       fbTrackPurchase(totalPrice, productName, qty, "combo");
       showSuccessModal(name, phone, productName, qty, totalPrice);
       resetForm();
+      _orderSubmitting = false;  // Re-enable after dev fallback
     }, 800);
   }
 }
@@ -390,6 +460,11 @@ function fbTrackInitiateCheckout() {
 
 function fbTrackPurchase(value, productName, qty, productKey) {
   if (typeof fbq !== "function") return;
+
+  // Deduplication: generate a unique event ID per order so Facebook
+  // collapses duplicates (browser pixel + server-side) into one conversion.
+  const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
   fbq("track", "Purchase", {
     content_name: productName,
     content_ids: [productKey],
@@ -397,5 +472,5 @@ function fbTrackPurchase(value, productName, qty, productKey) {
     value: value,
     currency: "BDT",
     num_items: qty
-  });
+  }, { eventID: eventId });
 }

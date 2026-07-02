@@ -137,12 +137,45 @@
           <span class="stars-label">৪.৯/৫ &nbsp;|&nbsp; ১২৭+ রিভিউ</span>
         </div>
 
-        <!-- Product Image -->
-        <div class="product-img-wrap">
-          <img src="assets/combo pack.jpeg"
-               alt="চমকদার কম্বো প্যাক — ফুড গ্রাইন্ডার + মাল্টি কুকার + মশলার বাটি"
-               class="product-img" id="main-product-img" loading="eager">
+        <!-- Product Image Slider -->
+        <div class="slider-wrap" id="product-slider">
+          <div class="slider-track" id="slider-track">
+            <div class="slide">
+              <img src="assets/combo pack.jpeg" alt="কম্বো প্যাক — সম্পূর্ণ সেট" loading="eager">
+              <span class="slide-label">📦 কম্বো প্যাক (সম্পূর্ণ সেট)</span>
+            </div>
+            <div class="slide">
+              <img src="assets/food grinder.png" alt="ফুড গ্রাইন্ডার" loading="lazy">
+              <span class="slide-label">⚙️ ফুড গ্রাইন্ডার</span>
+            </div>
+            <div class="slide">
+              <img src="assets/multi cooker.png" alt="মাল্টি কুকার" loading="lazy">
+              <span class="slide-label">🍳 মাল্টি কুকার</span>
+            </div>
+            <div class="slide">
+              <img src="assets/masala box.jpeg" alt="মশলার বাটি" loading="lazy">
+              <span class="slide-label">✨ মশলার বাটি</span>
+            </div>
+          </div>
+
+          <!-- Prev / Next arrows -->
+          <button class="slider-arrow slider-prev" id="slider-prev" aria-label="আগের ছবি">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="slider-arrow slider-next" id="slider-next" aria-label="পরের ছবি">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+
+          <!-- Save tag -->
           <span class="save-tag">৳৬০০ সেভ</span>
+
+          <!-- Dot indicators -->
+          <div class="slider-dots" id="slider-dots">
+            <button class="sdot active" data-idx="0" aria-label="স্লাইড ১"></button>
+            <button class="sdot" data-idx="1" aria-label="স্লাইড ২"></button>
+            <button class="sdot" data-idx="2" aria-label="স্লাইড ৩"></button>
+            <button class="sdot" data-idx="3" aria-label="স্লাইড ৪"></button>
+          </div>
         </div>
 
         <!-- Price + Order Now Button -->

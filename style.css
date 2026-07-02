@@ -277,30 +277,119 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   font-weight: 500;
 }
 
-/* Product Image */
-.product-img-wrap {
+/* ── Product Image Slider ── */
+.slider-wrap {
   position: relative;
   background: linear-gradient(135deg, #fff5f1 0%, #fafafa 100%);
   border-radius: var(--r-lg);
   border: 1px solid rgba(232,93,38,0.1);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 16px;
-  min-height: 260px;
   box-shadow: var(--sh-md);
+  min-height: 280px;
+  user-select: none;
 }
 
-.product-img {
+.slider-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.slide {
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px 48px;
+  gap: 10px;
+  position: relative;
+}
+
+.slide img {
   max-height: 240px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
+  border-radius: 8px;
   transition: transform 0.4s ease;
+  pointer-events: none;
 }
 
-.product-img-wrap:hover .product-img { transform: scale(1.04); }
+.slide-label {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 41, 59, 0.75);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 50px;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  letter-spacing: 0.3px;
+}
+
+/* Arrows */
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  color: var(--text);
+  transition: background var(--ease), transform var(--ease), box-shadow var(--ease);
+  z-index: 5;
+  padding: 0;
+}
+
+.slider-arrow:hover {
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.slider-prev { left: 10px; }
+.slider-next { right: 10px; }
+
+/* Dots */
+.slider-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 7px;
+  z-index: 5;
+}
+
+.sdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(30,41,59,0.25);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--ease), transform var(--ease), width var(--ease);
+}
+
+.sdot.active {
+  background: var(--primary);
+  width: 22px;
+  border-radius: 50px;
+}
 
 .save-tag {
   position: absolute;
@@ -312,6 +401,7 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   padding: 5px 12px;
   border-radius: 50px;
   box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+  z-index: 4;
 }
 
 /* ── Price + CTA Row ── */

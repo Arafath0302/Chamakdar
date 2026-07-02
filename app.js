@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateOrderSummary();
   setupEventListeners();
   setupComboAccordion();
+  setupProductSlider();
   fbSetupViewContentTracking();
 });
 
@@ -168,6 +169,75 @@ function setupEventListeners() {
       fbTrackInitiateCheckout();
     }
   });
+}
+
+/* ─────────────────────────────────────
+   PRODUCT IMAGE SLIDER
+───────────────────────────────────── */
+function setupProductSlider() {
+  const track   = document.getElementById("slider-track");
+  const prev    = document.getElementById("slider-prev");
+  const next    = document.getElementById("slider-next");
+  const dotsEl  = document.getElementById("slider-dots");
+  const wrap    = document.getElementById("product-slider");
+  if (!track || !prev || !next) return;
+
+  const TOTAL     = track.querySelectorAll(".slide").length;
+  const INTERVAL  = 4000; // ms between auto-slides
+  let current     = 0;
+  let autoTimer   = null;
+  let startX      = 0;
+  let isDragging  = false;
+
+  function goTo(idx) {
+    current = (idx + TOTAL) % TOTAL;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dotsEl.querySelectorAll(".sdot").forEach((d, i) => {
+      d.classList.toggle("active", i === current);
+    });
+  }
+
+  function startAuto() {
+    stopAuto();
+    autoTimer = setInterval(() => goTo(current + 1), INTERVAL);
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  }
+
+  // Arrow buttons
+  prev.addEventListener("click", () => { goTo(current - 1); startAuto(); });
+  next.addEventListener("click", () => { goTo(current + 1); startAuto(); });
+
+  // Dot buttons
+  dotsEl.querySelectorAll(".sdot").forEach(dot => {
+    dot.addEventListener("click", () => {
+      goTo(parseInt(dot.dataset.idx));
+      startAuto();
+    });
+  });
+
+  // Pause on hover/focus
+  wrap.addEventListener("mouseenter", stopAuto);
+  wrap.addEventListener("mouseleave", startAuto);
+
+  // Touch swipe support
+  wrap.addEventListener("touchstart", e => {
+    startX    = e.touches[0].clientX;
+    isDragging = true;
+    stopAuto();
+  }, { passive: true });
+
+  wrap.addEventListener("touchend", e => {
+    if (!isDragging) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+    isDragging = false;
+    startAuto();
+  }, { passive: true });
+
+  startAuto();
 }
 
 /* ─────────────────────────────────────

@@ -88,14 +88,29 @@ img { max-width: 100%; height: auto; display: block; }
   color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  overflow: hidden;
   font-size: 0.74rem;
   font-weight: 600;
-  padding: 0 12px;
+}
+
+.top-strip-track {
+  display: flex;
+  align-items: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  animation: marquee 25s linear infinite;
+}
+
+.top-strip-track span {
+  padding: 0 12px;
+}
+
+.top-strip:hover .top-strip-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .strip-dot { opacity: 0.5; }

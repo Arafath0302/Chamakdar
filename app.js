@@ -180,20 +180,34 @@ function setupProductSlider() {
   const next    = document.getElementById("slider-next");
   const dotsEl  = document.getElementById("slider-dots");
   const wrap    = document.getElementById("product-slider");
-  if (!track || !prev || !next) return;
+  if (!track || !prev || !next || !wrap) return;
 
-  const TOTAL     = track.querySelectorAll(".slide").length;
-  const INTERVAL  = 4000; // ms between auto-slides
+  const slides    = track.querySelectorAll(".slide");
+  const TOTAL     = slides.length;
+  const INTERVAL  = 4000;
   let current     = 0;
   let autoTimer   = null;
   let startX      = 0;
+  let startY      = 0;
   let isDragging  = false;
+
+  // Use pixel offset so % never resolves against the wrong element
+  function slideWidth() { return wrap.offsetWidth; }
 
   function goTo(idx) {
     current = (idx + TOTAL) % TOTAL;
-    track.style.transform = `translateX(-${current * 100}%)`;
+    track.style.transform = `translateX(-${current * slideWidth()}px)`;
     dotsEl.querySelectorAll(".sdot").forEach((d, i) => {
       d.classList.toggle("active", i === current);
+    });
+  }
+
+  // Re-snap on resize / orientation change (no animation flash)
+  function onResize() {
+    track.style.transition = "none";
+    track.style.transform  = `translateX(-${current * slideWidth()}px)`;
+    requestAnimationFrame(() => {
+      track.style.transition = "";
     });
   }
 
@@ -218,24 +232,32 @@ function setupProductSlider() {
     });
   });
 
-  // Pause on hover/focus
+  // Pause on hover
   wrap.addEventListener("mouseenter", stopAuto);
   wrap.addEventListener("mouseleave", startAuto);
 
-  // Touch swipe support
+  // Touch swipe — only trigger on horizontal drag
   wrap.addEventListener("touchstart", e => {
-    startX    = e.touches[0].clientX;
+    startX     = e.touches[0].clientX;
+    startY     = e.touches[0].clientY;
     isDragging = true;
     stopAuto();
   }, { passive: true });
 
   wrap.addEventListener("touchend", e => {
     if (!isDragging) return;
-    const diff = startX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+    const diffX = startX - e.changedTouches[0].clientX;
+    const diffY = startY - e.changedTouches[0].clientY;
+    // Only treat as horizontal swipe if horizontal movement dominates
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+      goTo(diffX > 0 ? current + 1 : current - 1);
+    }
     isDragging = false;
     startAuto();
   }, { passive: true });
+
+  // Handle resize / device rotation
+  window.addEventListener("resize", onResize, { passive: true });
 
   startAuto();
 }

@@ -215,6 +215,26 @@ header.scrolled { box-shadow: 0 2px 12px rgba(0,0,0,0.09); }
   border-radius: 50px;
 }
 
+.badge-delivery {
+  background: var(--success-lt);
+  color: var(--success);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 5px 11px;
+  border-radius: 50px;
+}
+
+.badge-guarantee {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 5px 11px;
+  border-radius: 50px;
+}
+
 /* Product Title */
 .product-title {
   font-size: 1.3rem;

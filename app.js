@@ -211,7 +211,9 @@ function updateOrderSummary() {
   const $ = id => document.getElementById(id);
 
   if ($("summary-product-price"))  $("summary-product-price").textContent  = `৳${fmt(subtotal)}`;
-  if ($("summary-delivery-charge")) $("summary-delivery-charge").textContent = `৳${fmt(delCharge)}`;
+  if ($("summary-delivery-charge")) {
+    $("summary-delivery-charge").textContent = delCharge === 0 ? "ফ্রী" : `৳${fmt(delCharge)}`;
+  }
   if ($("summary-total-price"))     $("summary-total-price").textContent     = `৳${fmt(total)}`;
 
   const btnText = $("submit-btn-text");

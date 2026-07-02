@@ -11,7 +11,7 @@ const CHAMAKDAR_CONFIG = {
 
   // Delivery Charges (টাকা)
   deliveryCharges: {
-    flat: 100  // সারা বাংলাদেশে ফিক্সড ডেলিভারি চার্জ
+    flat: 0  // সারা বাংলাদেশে ফিক্সড ডেলিভারি চার্জ
   },
 
   // Products — Combo Pack Only
@@ -19,7 +19,7 @@ const CHAMAKDAR_CONFIG = {
     combo: {
       id: "combo",
       name: "কম্বো প্যাক: ফুড গ্রাইন্ডার + মাল্টি কুকার + মসলার বাটি",
-      price: 1650,
+      price: 1850,
       originalPrice: 2450,
       image: "assets/combo pack.jpeg",
       badge: "🔥 সেরা ডিল"

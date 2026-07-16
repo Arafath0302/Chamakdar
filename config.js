@@ -23,6 +23,15 @@ const CHAMAKDAR_CONFIG = {
       originalPrice: 2450,
       image: "assets/combo pack.jpeg",
       badge: "🔥 সেরা ডিল"
+    },
+    combo2: {
+      id: "combo2",
+      name: "কম্বো প্যাক ২: সিলভার ক্রেস্ট ফুড গ্রাইন্ডার + মসলার বক্স",
+      price: 1199,
+      originalPrice: 1799,
+      image: "assets/combo pack 2.jpeg",
+      badge: "🔥 সেরা ডিল",
+      deliveryCharge: 50
     }
   },
 

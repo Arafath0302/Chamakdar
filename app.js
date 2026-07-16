@@ -45,6 +45,21 @@ function initializeFacebookPixel() {
 }
 
 /* ─────────────────────────────────────
+   PRODUCT RESOLUTION
+───────────────────────────────────── */
+function getActiveProductKey() {
+  return document.body.getAttribute("data-product-key") || "combo";
+}
+
+function getActiveProduct() {
+  if (typeof CHAMAKDAR_CONFIG === "undefined" || !CHAMAKDAR_CONFIG.products) {
+    return { id: "combo", name: "", price: 0 };
+  }
+  const key = getActiveProductKey();
+  return CHAMAKDAR_CONFIG.products[key] || CHAMAKDAR_CONFIG.products.combo;
+}
+
+/* ─────────────────────────────────────
    INIT FROM CONFIG
 ───────────────────────────────────── */
 function initializeFromConfig() {
@@ -293,9 +308,10 @@ function updateOrderSummary() {
   if (typeof CHAMAKDAR_CONFIG === "undefined") return;
 
   const cfg          = CHAMAKDAR_CONFIG;
-  const productPrice = cfg.products.combo.price;
+  const product      = getActiveProduct();
+  const productPrice = product.price;
   const qty          = parseInt(document.getElementById("order-quantity")?.value || 1) || 1;
-  const delCharge = cfg.deliveryCharges.flat;
+  const delCharge    = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
 
   const subtotal = productPrice * qty;
   const total    = subtotal + delCharge;
@@ -343,9 +359,10 @@ function handleOrderSubmit(e) {
   const delivery = "সারা বাংলাদেশ";
 
   const cfg          = CHAMAKDAR_CONFIG;
-  const productName  = cfg.products.combo.name;
-  const productPrice = cfg.products.combo.price;
-  const delCharge    = cfg.deliveryCharges.flat;
+  const product      = getActiveProduct();
+  const productName  = product.name;
+  const productPrice = product.price;
+  const delCharge    = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
   const totalPrice = (productPrice * qty) + delCharge;
 
   // Validation — reset guard on failure so user can try again
@@ -411,7 +428,7 @@ function handleOrderSubmit(e) {
     const fireSuccess = () => {
       if (purchaseFired) return;
       purchaseFired = true;
-      fbTrackPurchase(totalPrice, productName, qty, "combo");
+      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       showSuccessModal(name, phone, productName, qty, totalPrice);
       resetForm();
       submitBtn.disabled = false;
@@ -442,7 +459,7 @@ function handleOrderSubmit(e) {
     setTimeout(() => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = origHTML;
-      fbTrackPurchase(totalPrice, productName, qty, "combo");
+      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       showSuccessModal(name, phone, productName, qty, totalPrice);
       resetForm();
       _orderSubmitting = false;  // Re-enable after dev fallback
@@ -526,16 +543,16 @@ function fmt(amount) {
 ───────────────────────────────────── */
 function fbSetupViewContentTracking() {
   if (typeof fbq !== "function") return;
-  const imgWrap = document.querySelector(".product-img-wrap");
+  const imgWrap = document.querySelector(".slider-wrap");
   if (!imgWrap || !CHAMAKDAR_CONFIG) return;
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const p = CHAMAKDAR_CONFIG.products.combo;
+        const p = getActiveProduct();
         fbq("track", "ViewContent", {
           content_name: p.name,
-          content_ids: ["combo"],
+          content_ids: [p.id || getActiveProductKey()],
           content_type: "product",
           value: p.price,
           currency: "BDT"

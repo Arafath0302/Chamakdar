@@ -70,7 +70,7 @@ function initializeFromConfig() {
   const cfg = CHAMAKDAR_CONFIG;
 
   const wa = document.getElementById("footer-wa-link");
-  if (wa) wa.setAttribute("href", `https://wa.me/${cfg.whatsappNumber.replace('+','')}`);
+  if (wa) wa.setAttribute("href", `https://wa.me/${cfg.whatsappNumber.replace('+', '')}`);
 
   const fb = document.getElementById("footer-fb-link");
   if (fb) fb.setAttribute("href", cfg.facebookPageUrl);
@@ -89,8 +89,8 @@ function setupEventListeners() {
 
   // ── Quantity Stepper ──
   const qtyInput = document.getElementById("order-quantity");
-  const minus    = document.getElementById("btn-qty-minus");
-  const plus     = document.getElementById("btn-qty-plus");
+  const minus = document.getElementById("btn-qty-minus");
+  const plus = document.getElementById("btn-qty-plus");
 
   if (minus && plus && qtyInput) {
     minus.addEventListener("click", () => {
@@ -146,8 +146,8 @@ function setupEventListeners() {
   });
 
   // ── Sticky Order Bar — hide when form is visible ──
-  const stickyBar       = document.getElementById("sticky-bar");
-  const formCol         = document.getElementById("order-form-anchor");
+  const stickyBar = document.getElementById("sticky-bar");
+  const formCol = document.getElementById("order-form-anchor");
 
   if (stickyBar && formCol) {
     const observer = new IntersectionObserver(
@@ -190,28 +190,32 @@ function setupEventListeners() {
    PRODUCT IMAGE SLIDER
 ───────────────────────────────────── */
 function setupProductSlider() {
-  const track   = document.getElementById("slider-track");
-  const prev    = document.getElementById("slider-prev");
-  const next    = document.getElementById("slider-next");
-  const dotsEl  = document.getElementById("slider-dots");
-  const wrap    = document.getElementById("product-slider");
+  const track = document.getElementById("slider-track");
+  const prev = document.getElementById("slider-prev");
+  const next = document.getElementById("slider-next");
+  const dotsEl = document.getElementById("slider-dots");
+  const wrap = document.getElementById("product-slider");
   if (!track || !prev || !next || !wrap) return;
 
-  const slides    = track.querySelectorAll(".slide");
-  const TOTAL     = slides.length;
-  const INTERVAL  = 4000;
-  let current     = 0;
-  let autoTimer   = null;
-  let startX      = 0;
-  let startY      = 0;
-  let isDragging  = false;
-
-  // Use pixel offset so % never resolves against the wrong element
-  function slideWidth() { return wrap.offsetWidth; }
+  const slides = track.querySelectorAll(".slide");
+  const TOTAL = slides.length;
+  if (TOTAL === 0) return;
+  const INTERVAL = 4000;
+  let current = 0;
+  let autoTimer = null;
+  let startX = 0;
+  let startY = 0;
+  let isDragging = false;
 
   function goTo(idx) {
     current = (idx + TOTAL) % TOTAL;
-    track.style.transform = `translateX(-${current * slideWidth()}px)`;
+    track.style.transform = `translateX(-${current * 100}%)`;
+
+    // Toggle active class on slides for transition effects
+    slides.forEach((s, i) => {
+      s.classList.toggle("active", i === current);
+    });
+
     dotsEl.querySelectorAll(".sdot").forEach((d, i) => {
       d.classList.toggle("active", i === current);
     });
@@ -220,7 +224,7 @@ function setupProductSlider() {
   // Re-snap on resize / orientation change (no animation flash)
   function onResize() {
     track.style.transition = "none";
-    track.style.transform  = `translateX(-${current * slideWidth()}px)`;
+    track.style.transform = `translateX(-${current * 100}%)`;
     requestAnimationFrame(() => {
       track.style.transition = "";
     });
@@ -253,8 +257,8 @@ function setupProductSlider() {
 
   // Touch swipe — only trigger on horizontal drag
   wrap.addEventListener("touchstart", e => {
-    startX     = e.touches[0].clientX;
-    startY     = e.touches[0].clientY;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
     isDragging = true;
     stopAuto();
   }, { passive: true });
@@ -274,6 +278,8 @@ function setupProductSlider() {
   // Handle resize / device rotation
   window.addEventListener("resize", onResize, { passive: true });
 
+  // Initialize first slide and track position
+  goTo(0);
   startAuto();
 }
 
@@ -307,22 +313,22 @@ function setupComboAccordion() {
 function updateOrderSummary() {
   if (typeof CHAMAKDAR_CONFIG === "undefined") return;
 
-  const cfg          = CHAMAKDAR_CONFIG;
-  const product      = getActiveProduct();
+  const cfg = CHAMAKDAR_CONFIG;
+  const product = getActiveProduct();
   const productPrice = product.price;
-  const qty          = parseInt(document.getElementById("order-quantity")?.value || 1) || 1;
-  const delCharge    = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
+  const qty = parseInt(document.getElementById("order-quantity")?.value || 1) || 1;
+  const delCharge = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
 
   const subtotal = productPrice * qty;
-  const total    = subtotal + delCharge;
+  const total = subtotal + delCharge;
 
   const $ = id => document.getElementById(id);
 
-  if ($("summary-product-price"))  $("summary-product-price").textContent  = `৳${fmt(subtotal)}`;
+  if ($("summary-product-price")) $("summary-product-price").textContent = `৳${fmt(subtotal)}`;
   if ($("summary-delivery-charge")) {
     $("summary-delivery-charge").textContent = delCharge === 0 ? "ফ্রী" : `৳${fmt(delCharge)}`;
   }
-  if ($("summary-total-price"))     $("summary-total-price").textContent     = `৳${fmt(total)}`;
+  if ($("summary-total-price")) $("summary-total-price").textContent = `৳${fmt(total)}`;
 
   const btnText = $("submit-btn-text");
   if (btnText) {
@@ -348,21 +354,21 @@ function handleOrderSubmit(e) {
   if (_orderSubmitting) return;
   _orderSubmitting = true;
 
-  const nameEl    = document.getElementById("cust-name");
-  const phoneEl   = document.getElementById("cust-phone");
-  const addrEl    = document.getElementById("cust-address");
-  const qtyEl     = document.getElementById("order-quantity");
-  const name    = nameEl.value.trim();
-  const phone   = phoneEl.value.trim();
+  const nameEl = document.getElementById("cust-name");
+  const phoneEl = document.getElementById("cust-phone");
+  const addrEl = document.getElementById("cust-address");
+  const qtyEl = document.getElementById("order-quantity");
+  const name = nameEl.value.trim();
+  const phone = phoneEl.value.trim();
   const address = addrEl.value.trim();
-  const qty     = parseInt(qtyEl?.value || 1) || 1;
+  const qty = parseInt(qtyEl?.value || 1) || 1;
   const delivery = "সারা বাংলাদেশ";
 
-  const cfg          = CHAMAKDAR_CONFIG;
-  const product      = getActiveProduct();
-  const productName  = product.name;
+  const cfg = CHAMAKDAR_CONFIG;
+  const product = getActiveProduct();
+  const productName = product.name;
   const productPrice = product.price;
-  const delCharge    = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
+  const delCharge = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
   const totalPrice = (productPrice * qty) + delCharge;
 
   // Validation — reset guard on failure so user can try again
@@ -388,9 +394,9 @@ function handleOrderSubmit(e) {
   }
 
   // Disable button
-  const submitBtn  = document.getElementById("btn-submit-order");
-  const origHTML   = submitBtn.innerHTML;
-  submitBtn.disabled  = true;
+  const submitBtn = document.getElementById("btn-submit-order");
+  const origHTML = submitBtn.innerHTML;
+  submitBtn.disabled = true;
   submitBtn.textContent = "অর্ডার সাবমিট হচ্ছে...";
 
   // Google Form submission
@@ -406,12 +412,12 @@ function handleOrderSubmit(e) {
     hf.target = "gf_frame";
 
     const fields = {
-      [cfg.googleForm.entryIds.name]:       name,
-      [cfg.googleForm.entryIds.phone]:      phone,
-      [cfg.googleForm.entryIds.address]:    address,
-      [cfg.googleForm.entryIds.product]:    productName,
-      [cfg.googleForm.entryIds.quantity]:   String(qty),
-      [cfg.googleForm.entryIds.delivery]:   delivery,
+      [cfg.googleForm.entryIds.name]: name,
+      [cfg.googleForm.entryIds.phone]: phone,
+      [cfg.googleForm.entryIds.address]: address,
+      [cfg.googleForm.entryIds.product]: productName,
+      [cfg.googleForm.entryIds.quantity]: String(qty),
+      [cfg.googleForm.entryIds.delivery]: delivery,
       [cfg.googleForm.entryIds.totalPrice]: String(totalPrice)
     };
 
@@ -436,7 +442,7 @@ function handleOrderSubmit(e) {
       updateOrderSummary();
       _orderSubmitting = false;
       setTimeout(() => {
-        if (document.body.contains(hf))     document.body.removeChild(hf);
+        if (document.body.contains(hf)) document.body.removeChild(hf);
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
       }, 1200);
     };
@@ -474,7 +480,7 @@ function fieldError(el, msg) {
   // Clear previous
   el.parentNode.querySelectorAll(".field-err").forEach(e => e.remove());
   el.style.borderColor = "var(--error)";
-  el.style.boxShadow   = "0 0 0 3px rgba(220,38,38,0.12)";
+  el.style.boxShadow = "0 0 0 3px rgba(220,38,38,0.12)";
 
   const div = document.createElement("div");
   div.className = "field-err";
@@ -484,7 +490,7 @@ function fieldError(el, msg) {
 
   el.addEventListener("input", () => {
     el.style.borderColor = "";
-    el.style.boxShadow   = "";
+    el.style.boxShadow = "";
     div.remove();
   }, { once: true });
 }
@@ -494,8 +500,8 @@ function fieldError(el, msg) {
 ───────────────────────────────────── */
 function resetForm() {
   const $ = id => document.getElementById(id);
-  $("cust-name").value    = "";
-  $("cust-phone").value   = "";
+  $("cust-name").value = "";
+  $("cust-phone").value = "";
   $("cust-address").value = "";
   const qty = $("order-quantity");
   if (qty) qty.value = "1";
@@ -515,10 +521,10 @@ function resetForm() {
 ───────────────────────────────────── */
 function showSuccessModal(name, phone, product, qty, total) {
   const $ = id => document.getElementById(id);
-  $("modal-cust-name").textContent  = name;
+  $("modal-cust-name").textContent = name;
   $("modal-cust-phone").textContent = phone;
-  $("modal-prod-name").textContent  = product;
-  $("modal-prod-qty").textContent   = `${qty} টি`;
+  $("modal-prod-name").textContent = product;
+  $("modal-prod-qty").textContent = `${qty} টি`;
   $("modal-total-bill").textContent = `৳${fmt(total)}`;
   $("order-success-modal").classList.add("active");
 

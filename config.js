@@ -21,7 +21,7 @@ const CHAMAKDAR_CONFIG = {
       name: "কম্বো প্যাক: ফুড গ্রাইন্ডার + মাল্টি কুকার + মসলার বাটি",
       price: 1950,
       originalPrice: 2450,
-      image: "assets/combo pack.jpeg",
+      image: "assets/combo-pack.webp",
       badge: "🔥 সেরা ডিল"
     },
     combo2: {
@@ -29,7 +29,7 @@ const CHAMAKDAR_CONFIG = {
       name: "কম্বো প্যাক ২: সিলভার ক্রেস্ট ফুড গ্রাইন্ডার + মসলার বক্স",
       price: 1199,
       originalPrice: 1799,
-      image: "assets/combo pack 2.jpeg",
+      image: "assets/combo-pack-2.webp",
       badge: "🔥 সেরা ডিল",
       deliveryCharge: 50
     }

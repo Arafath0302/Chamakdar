@@ -19,11 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Only fire the pixel on the real production domain.
 // Blocks dev environments (localhost, 127.0.0.1) and Vercel previews.
-const PRODUCTION_DOMAINS = ["chomokdar.com", "www.chomokdar.com"];
-
 function isProductionDomain() {
   const host = window.location.hostname.toLowerCase();
-  return PRODUCTION_DOMAINS.includes(host);
+  // Allow chomokdar.com and any subdomains (e.g. www, m, landing)
+  return host === "chomokdar.com" || host.endsWith(".chomokdar.com");
 }
 
 function initializeFacebookPixel() {
@@ -118,10 +117,8 @@ function setupEventListeners() {
   if (form) {
     form.addEventListener("submit", handleOrderSubmit);
 
-    // FB: InitiateCheckout on first focus — fires only once per page load
-    form.addEventListener("focusin", () => {
-      fbTrackInitiateCheckout();
-    }, { once: true });  // 'once: true' removes listener after first fire
+    // FB: InitiateCheckout on first focus
+    form.addEventListener("focusin", triggerInitiateCheckout, { once: true });
   }
 
   // ── FAQ Accordion ──
@@ -167,8 +164,13 @@ function setupEventListeners() {
 
   // ── Smooth scroll to order form — prevents mobile keyboard popup ──
   document.addEventListener("click", (e) => {
-    const link = e.target.closest('a[href="#order-form-anchor"]');
+    const link = e.target.closest('a');
     if (!link) return;
+    
+    // Check if the link's target hash is the order form anchor
+    const isOrderFormLink = link.hash === "#order-form-anchor" || link.getAttribute("href") === "#order-form-anchor";
+    if (!isOrderFormLink) return;
+
     e.preventDefault();
     const target = document.getElementById("order-form-anchor");
     if (target) {
@@ -180,9 +182,7 @@ function setupEventListeners() {
         }
       }, 100);
     }
-    if (link.id === "btn-order-now-top") {
-      fbTrackInitiateCheckout();
-    }
+    triggerInitiateCheckout();
   });
 }
 
@@ -429,31 +429,25 @@ function handleOrderSubmit(e) {
 
     document.body.appendChild(hf);
 
-    // Fire Purchase AFTER Google Form responds (iframe onload = server received data)
-    let purchaseFired = false;
-    const fireSuccess = () => {
-      if (purchaseFired) return;
-      purchaseFired = true;
-      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
+    hf.submit();
+
+    // Fire Purchase pixel and show success modal after a brief delay
+    // to allow the browser to dispatch the form submit request.
+    setTimeout(() => {
       showSuccessModal(name, phone, productName, qty, totalPrice);
+      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       resetForm();
       submitBtn.disabled = false;
       submitBtn.innerHTML = origHTML;
       updateOrderSummary();
       _orderSubmitting = false;
+
+      // Cleanup elements
       setTimeout(() => {
         if (document.body.contains(hf)) document.body.removeChild(hf);
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
-      }, 1200);
-    };
-
-    // onload fires when Google Form iframe gets a response
-    iframe.addEventListener("load", fireSuccess, { once: true });
-
-    // Fallback: if onload never fires within 10s (network issue), show modal anyway
-    setTimeout(fireSuccess, 10000);
-
-    hf.submit();
+      }, 1000);
+    }, 150);
 
   } else {
     // Dev fallback
@@ -465,11 +459,11 @@ function handleOrderSubmit(e) {
     setTimeout(() => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = origHTML;
-      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       showSuccessModal(name, phone, productName, qty, totalPrice);
+      fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       resetForm();
       _orderSubmitting = false;  // Re-enable after dev fallback
-    }, 800);
+    }, 150);
   }
 }
 
@@ -573,6 +567,13 @@ function fbSetupViewContentTracking() {
 function fbTrackInitiateCheckout() {
   if (typeof fbq !== "function") return;
   fbq("track", "InitiateCheckout");
+}
+
+let initiateCheckoutFired = false;
+function triggerInitiateCheckout() {
+  if (initiateCheckoutFired) return;
+  initiateCheckoutFired = true;
+  fbTrackInitiateCheckout();
 }
 
 function fbTrackPurchase(value, productName, qty, productKey) {

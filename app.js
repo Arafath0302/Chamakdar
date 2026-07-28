@@ -429,11 +429,12 @@ function handleOrderSubmit(e) {
 
     document.body.appendChild(hf);
 
-    hf.submit();
+    // Fire Purchase AFTER Google Form responds (iframe onload = server received data)
+    let purchaseFired = false;
+    const fireSuccess = () => {
+      if (purchaseFired) return;
+      purchaseFired = true;
 
-    // Fire Purchase pixel and show success modal after a brief delay
-    // to allow the browser to dispatch the form submit request.
-    setTimeout(() => {
       showSuccessModal(name, phone, productName, qty, totalPrice);
       fbTrackPurchase(totalPrice, productName, qty, product.id || getActiveProductKey());
       resetForm();
@@ -447,7 +448,15 @@ function handleOrderSubmit(e) {
         if (document.body.contains(hf)) document.body.removeChild(hf);
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
       }, 1000);
-    }, 150);
+    };
+
+    // onload fires when Google Form iframe gets a response
+    iframe.addEventListener("load", fireSuccess, { once: true });
+
+    // Fallback: if onload never fires within 8s (e.g. network timeout), proceed anyway
+    setTimeout(fireSuccess, 8000);
+
+    hf.submit();
 
   } else {
     // Dev fallback

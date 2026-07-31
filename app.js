@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   setupComboAccordion();
   setupProductSlider();
+  setupImageLightbox();
   fbSetupViewContentTracking();
 });
 
@@ -112,6 +113,32 @@ function setupEventListeners() {
     });
   });
 
+  // ── Cooker Color Selector Radio Listener ──
+  document.querySelectorAll('input[name="cooker_color"]').forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      document.querySelectorAll(".cp-option").forEach(lbl => lbl.classList.remove("active"));
+      const label = e.target.closest(".cp-option");
+      if (label) {
+        label.classList.add("active");
+        const imgSrc = label.getAttribute("data-img");
+        if (imgSrc) {
+          const formPreviewImg = document.getElementById("form-preview-img");
+          if (formPreviewImg) {
+            formPreviewImg.style.opacity = "0.5";
+            setTimeout(() => {
+              formPreviewImg.src = imgSrc;
+              formPreviewImg.style.opacity = "1";
+            }, 100);
+          }
+          const dynamicCookerImg = document.getElementById("ci-cooker-dynamic-img");
+          if (dynamicCookerImg) {
+            dynamicCookerImg.src = imgSrc;
+          }
+        }
+      }
+    });
+  });
+
   // ── Form Submit ──
   const form = document.getElementById("checkout-form");
   if (form) {
@@ -187,7 +214,7 @@ function setupEventListeners() {
 }
 
 /* ─────────────────────────────────────
-   PRODUCT IMAGE SLIDER
+   PRODUCT IMAGE SLIDER & THUMBNAILS
 ───────────────────────────────────── */
 function setupProductSlider() {
   const track = document.getElementById("slider-track");
@@ -195,6 +222,7 @@ function setupProductSlider() {
   const next = document.getElementById("slider-next");
   const dotsEl = document.getElementById("slider-dots");
   const wrap = document.getElementById("product-slider");
+  const thumbGallery = document.getElementById("thumbnail-gallery");
   if (!track || !prev || !next || !wrap) return;
 
   const slides = track.querySelectorAll(".slide");
@@ -216,9 +244,17 @@ function setupProductSlider() {
       s.classList.toggle("active", i === current);
     });
 
-    dotsEl.querySelectorAll(".sdot").forEach((d, i) => {
-      d.classList.toggle("active", i === current);
-    });
+    if (dotsEl) {
+      dotsEl.querySelectorAll(".sdot").forEach((d, i) => {
+        d.classList.toggle("active", i === current);
+      });
+    }
+
+    if (thumbGallery) {
+      thumbGallery.querySelectorAll(".thumb-item").forEach((th, i) => {
+        th.classList.toggle("active", i === current);
+      });
+    }
   }
 
   // Re-snap on resize / orientation change (no animation flash)
@@ -240,16 +276,32 @@ function setupProductSlider() {
   }
 
   // Arrow buttons
-  prev.addEventListener("click", () => { goTo(current - 1); startAuto(); });
-  next.addEventListener("click", () => { goTo(current + 1); startAuto(); });
+  prev.addEventListener("click", (e) => { e.stopPropagation(); goTo(current - 1); startAuto(); });
+  next.addEventListener("click", (e) => { e.stopPropagation(); goTo(current + 1); startAuto(); });
 
   // Dot buttons
-  dotsEl.querySelectorAll(".sdot").forEach(dot => {
-    dot.addEventListener("click", () => {
-      goTo(parseInt(dot.dataset.idx));
-      startAuto();
+  if (dotsEl) {
+    dotsEl.querySelectorAll(".sdot").forEach(dot => {
+      dot.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goTo(parseInt(dot.dataset.idx));
+        startAuto();
+      });
     });
-  });
+  }
+
+  // Thumbnail buttons
+  if (thumbGallery) {
+    thumbGallery.querySelectorAll(".thumb-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const idx = parseInt(item.dataset.idx);
+        if (!isNaN(idx)) {
+          goTo(idx);
+          startAuto();
+        }
+      });
+    });
+  }
 
   // Pause on hover
   wrap.addEventListener("mouseenter", stopAuto);
@@ -284,6 +336,88 @@ function setupProductSlider() {
 }
 
 /* ─────────────────────────────────────
+   FULLSCREEN IMAGE LIGHTBOX MODAL
+───────────────────────────────────── */
+function setupImageLightbox() {
+  const modal = document.getElementById("image-lightbox-modal");
+  const lightboxImg = document.getElementById("lightbox-img");
+  const lightboxCaption = document.getElementById("lightbox-caption");
+  const closeBtn = document.getElementById("lightbox-close-btn");
+  const zoomBtn = document.getElementById("btn-zoom-image");
+  if (!modal || !lightboxImg) return;
+
+  function openLightbox(src, captionText) {
+    lightboxImg.src = src;
+    if (lightboxCaption) {
+      lightboxCaption.textContent = captionText || "";
+      lightboxCaption.style.display = captionText ? "inline-block" : "none";
+    }
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  if (zoomBtn) {
+    zoomBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const activeSlide = document.querySelector("#slider-track .slide.active");
+      if (activeSlide) {
+        const img = activeSlide.querySelector("img");
+        const label = activeSlide.querySelector(".slide-label");
+        if (img) openLightbox(img.src, label ? label.textContent : "");
+      }
+    });
+  }
+
+  // Also click on slide image to open lightbox
+  document.querySelectorAll("#slider-track .slide").forEach(slide => {
+    slide.addEventListener("click", (e) => {
+      // Avoid triggering if clicked on arrows or zoom button
+      if (e.target.closest(".slider-arrow") || e.target.closest(".zoom-btn")) return;
+      const img = slide.querySelector("img");
+      const label = slide.querySelector(".slide-label");
+      if (img) openLightbox(img.src, label ? label.textContent : "");
+    });
+  });
+
+  // Click on combo breakdown preview cards to zoom
+  document.querySelectorAll(".ci-preview-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const img = card.querySelector("img");
+      const badge = card.querySelector(".ci-img-badge");
+      if (img) openLightbox(img.src, badge ? badge.textContent : "");
+    });
+  });
+
+  // Click on proof cards to zoom
+  document.querySelectorAll(".proof-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const imgSrc = card.getAttribute("data-img") || card.querySelector("img")?.src;
+      const caption = card.getAttribute("data-caption") || card.querySelector("strong")?.textContent;
+      if (imgSrc) openLightbox(imgSrc, caption);
+    });
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", closeLightbox);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal || e.target.classList.contains("lightbox-content") || e.target.classList.contains("lightbox-img-wrap")) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeLightbox();
+    }
+  });
+}
+
+/* ─────────────────────────────────────
    COMBO ITEM ACCORDION
 ───────────────────────────────────── */
 function setupComboAccordion() {
@@ -303,6 +437,26 @@ function setupComboAccordion() {
       // Toggle this item
       item.classList.toggle("open", !isOpen);
       btn.setAttribute("aria-expanded", String(!isOpen));
+    });
+  });
+
+  // Handle dropdown thumbnail switching
+  document.querySelectorAll(".ci-thumb-item").forEach(thumb => {
+    thumb.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const parentContent = thumb.closest(".ci-body-content");
+      if (!parentContent) return;
+
+      parentContent.querySelectorAll(".ci-thumb-item").forEach(t => t.classList.remove("active"));
+      thumb.classList.add("active");
+
+      const mainImg = parentContent.querySelector(".ci-full-img");
+      const badge = parentContent.querySelector(".ci-img-badge");
+      const src = thumb.getAttribute("data-src");
+      const caption = thumb.getAttribute("data-caption");
+
+      if (mainImg && src) mainImg.src = src;
+      if (badge && caption) badge.textContent = caption;
     });
   });
 }
@@ -359,14 +513,31 @@ function handleOrderSubmit(e) {
   const addrEl = document.getElementById("cust-address");
   const qtyEl = document.getElementById("order-quantity");
   const name = nameEl.value.trim();
-  const phone = phoneEl.value.trim();
+  const rawPhone = phoneEl.value.trim();
   const address = addrEl.value.trim();
   const qty = parseInt(qtyEl?.value || 1) || 1;
-  const delivery = "সারা বাংলাদেশ";
+
+  // Normalize phone number (handles 01779220990, +8801779220990, 8801779220990, spaces, dashes)
+  let cleanPhone = rawPhone.replace(/[\s\-\(\)]/g, "");
+  if (cleanPhone.startsWith("+8801")) {
+    cleanPhone = cleanPhone.slice(3);
+  } else if (cleanPhone.startsWith("8801")) {
+    cleanPhone = cleanPhone.slice(2);
+  }
+  const phone = cleanPhone;
+
+  // Read selected product color if color picker is available
+  const selectedColorEl = document.querySelector('input[name="cooker_color"]:checked');
+  const selectedColor = selectedColorEl ? selectedColorEl.value : "Sky Blue";
+
+  // Send cooker color to the Google Form delivery column entry ID!
+  const delivery = selectedColor;
 
   const cfg = CHAMAKDAR_CONFIG;
   const product = getActiveProduct();
-  const productName = product.name;
+
+  // Append selected color to productName so it automatically populates in Google Sheets
+  const productName = selectedColor ? `${product.name} (Color: ${selectedColor})` : product.name;
   const productPrice = product.price;
   const delCharge = (product.deliveryCharge !== undefined) ? product.deliveryCharge : cfg.deliveryCharges.flat;
   const totalPrice = (productPrice * qty) + delCharge;
@@ -384,7 +555,7 @@ function handleOrderSubmit(e) {
   }
   if (!/^01[3-9]\d{8}$/.test(phone)) {
     _orderSubmitting = false;
-    fieldError(phoneEl, "সঠিক ১১ ডিজিটের নম্বর দিন (যেমন: 01712345678)");
+    fieldError(phoneEl, "সঠিক মোবাইল নম্বর দিন (যেমন: 01712345678 বা +8801712345678)");
     phoneEl.focus(); return;
   }
   if (!address) {
@@ -420,6 +591,10 @@ function handleOrderSubmit(e) {
       [cfg.googleForm.entryIds.delivery]: delivery,
       [cfg.googleForm.entryIds.totalPrice]: String(totalPrice)
     };
+
+    if (cfg.googleForm.entryIds.color && selectedColor) {
+      fields[cfg.googleForm.entryIds.color] = selectedColor;
+    }
 
     Object.entries(fields).forEach(([id, val]) => {
       const inp = document.createElement("input");

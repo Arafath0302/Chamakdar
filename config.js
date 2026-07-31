@@ -19,7 +19,7 @@ const CHAMAKDAR_CONFIG = {
     combo: {
       id: "combo",
       name: "কম্বো প্যাক: ফুড গ্রাইন্ডার + মাল্টি কুকার + মসলার বাটি",
-      price: 1950,
+      price: 1850,
       originalPrice: 2450,
       image: "assets/combo-pack.webp",
       badge: "🔥 সেরা ডিল"
@@ -44,6 +44,7 @@ const CHAMAKDAR_CONFIG = {
       phone: "entry.1264098632",
       address: "entry.387208573",
       product: "entry.830105660",
+      color: "", // Optional: Google Form entry ID for dedicated color column
       quantity: "entry.1120194264",
       delivery: "entry.471036601",
       totalPrice: "entry.1811605097"

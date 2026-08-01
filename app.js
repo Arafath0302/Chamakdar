@@ -517,11 +517,13 @@ function handleOrderSubmit(e) {
   const address = addrEl.value.trim();
   const qty = parseInt(qtyEl?.value || 1) || 1;
 
+  // Convert Bangla numerals (০-৯) to English digits (0-9)
+  const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  let convertedPhone = rawPhone.replace(/[০-৯]/g, d => bnDigits.indexOf(d));
+
   // Normalize phone number (handles 01779220990, +8801779220990, 8801779220990, spaces, dashes)
-  let cleanPhone = rawPhone.replace(/[\s\-\(\)]/g, "");
-  if (cleanPhone.startsWith("+8801")) {
-    cleanPhone = cleanPhone.slice(3);
-  } else if (cleanPhone.startsWith("8801")) {
+  let cleanPhone = convertedPhone.replace(/[\s\-\(\)\+]/g, "");
+  if (cleanPhone.startsWith("8801")) {
     cleanPhone = cleanPhone.slice(2);
   }
   const phone = cleanPhone;
@@ -553,9 +555,10 @@ function handleOrderSubmit(e) {
     fieldError(phoneEl, "অনুগ্রহ করে মোবাইল নম্বর লিখুন!");
     phoneEl.focus(); return;
   }
-  if (!/^01[3-9]\d{8}$/.test(phone)) {
+  // Accepts 11-digit mobile numbers starting with 01 (e.g. 017..., 018..., 013..., 014..., 019...)
+  if (!/^01\d{9}$/.test(phone)) {
     _orderSubmitting = false;
-    fieldError(phoneEl, "সঠিক মোবাইল নম্বর দিন (যেমন: 01712345678 বা +8801712345678)");
+    fieldError(phoneEl, "সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)");
     phoneEl.focus(); return;
   }
   if (!address) {
@@ -563,6 +566,9 @@ function handleOrderSubmit(e) {
     fieldError(addrEl, "ডেলিভারির সম্পূর্ণ ঠিকানা লিখুন!");
     addrEl.focus(); return;
   }
+
+  // Update phone input value to normalized format for visual clarity
+  phoneEl.value = phone;
 
   // Disable button
   const submitBtn = document.getElementById("btn-submit-order");
@@ -596,15 +602,28 @@ function handleOrderSubmit(e) {
       fields[cfg.googleForm.entryIds.color] = selectedColor;
     }
 
+    // Build form data for fetch fallback as well
+    const formData = new URLSearchParams();
     Object.entries(fields).forEach(([id, val]) => {
       const inp = document.createElement("input");
       inp.type = "hidden"; inp.name = id; inp.value = val;
       hf.appendChild(inp);
+      formData.append(id, val);
     });
 
     document.body.appendChild(hf);
 
-    // Fire Purchase AFTER Google Form responds (iframe onload = server received data)
+    // Parallel background fetch for mobile in-app browsers
+    try {
+      fetch(cfg.googleForm.actionUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString()
+      }).catch(() => {});
+    } catch (err) {}
+
+    // Fire Purchase and show Success Modal quickly (1.2s max delay for smooth UX)
     let purchaseFired = false;
     const fireSuccess = () => {
       if (purchaseFired) return;
@@ -628,8 +647,8 @@ function handleOrderSubmit(e) {
     // onload fires when Google Form iframe gets a response
     iframe.addEventListener("load", fireSuccess, { once: true });
 
-    // Fallback: if onload never fires within 8s (e.g. network timeout), proceed anyway
-    setTimeout(fireSuccess, 8000);
+    // Fast Fallback: 1.2s max delay so mobile users never wait on loading spinner
+    setTimeout(fireSuccess, 1200);
 
     hf.submit();
 
